@@ -90,6 +90,8 @@ async function init() {
   $("minWords").oninput = () => ($("mw-val").textContent = $("minWords").value);
   $("minWords").onchange = () => save({ minWords: Number($("minWords").value) });
 
+  $("showPlain").checked = !!s.showPlain;
+  $("showPlain").onchange = () => save({ showPlain: $("showPlain").checked });
   $("jokes").checked = s.jokes !== false;
   $("jokes").onchange = () => save({ jokes: $("jokes").checked });
 

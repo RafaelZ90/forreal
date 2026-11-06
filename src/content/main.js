@@ -49,9 +49,10 @@
   // or a very low signal. Other Skips keep their label but stay open. ("maybe" mode is the reader's explicit choice.)
   function autoFold(v, tier) {
     if (cfg.collapse === "never" || tier === "kind" || tier === "worth") return false;
+    if (v.category === "ad") return true;
     if (cfg.collapse === "maybe") return true;
     if (tier !== "skip" || (v.worth && v.worth.href)) return false;
-    return v.category === "ad" || v.category === "bait" || v.signal < 25;
+    return v.category === "bait" || v.signal < 15;
   }
 
   function verdictOf(rec) {
@@ -69,15 +70,21 @@
     const v = verdictOf(rec);
     const tier = tierOf(v);
     // The automatic fold is decided once per post and then kept: a re-read may update the line, never make it jump.
+    // (LinkedIn shows a slightly different text for a folded post than for an open one.)
     if (rec.autoFold === undefined) rec.autoFold = autoFold(v, tier);
-    const folded = userFold.has(rec.hash) ? userFold.get(rec.hash) : rec.autoFold;
+    // The reader's Show/Fold click belongs to the post itself and always wins.
+    if (rec.userFold === undefined && userFold.has(rec.hash)) rec.userFold = userFold.get(rec.hash);
+    const folded = rec.userFold !== undefined ? rec.userFold : rec.autoFold;
+    // Ordinary posts (plain, nothing to say) get no line unless the reader wants one.
+    const quiet = !cfg.showPlain && v.category === "plain" && tier === "maybe" && !folded;
+    rec.strip.host.style.display = quiet ? "none" : "block";
     rec.box.toggleAttribute("data-unspin-fold", folded);
     rec.strip.update(v, {
       tier, folded, canFold: tier !== "worth" && tier !== "kind",
       jokes: cfg.jokes !== false,
       engineState: rec.engineState,
       categories: CATEGORY_LIST,
-      onFold: () => { userFold.set(rec.hash, !folded); apply(rec); },
+      onFold: () => { rec.userFold = !folded; userFold.set(rec.hash, rec.userFold); apply(rec); },
       onRelabel: (cat) => relabel(rec, v, cat),
     });
     if (!rec.counted && !counted.has(rec.hash)) {
@@ -92,6 +99,7 @@
     overrides.set(rec.hash, cat);
     userFold.delete(rec.hash);
     rec.autoFold = undefined; // a corrected label may fold or unfold once
+    rec.userFold = undefined;
     apply(rec);
     try {
       const got = await api.storage.local.get(["overrides", "corrections"]);
@@ -173,23 +181,22 @@
     if (old) {
       // Same post, changed text (LinkedIn's "…more", lazy loading): update in place, keep the reader's choices
       // and the fold, and put the line back if the site removed it.
-      if (userFold.has(old.hash) && !userFold.has(hash)) userFold.set(hash, userFold.get(old.hash));
       if (overrides.has(old.hash) && !overrides.has(hash)) overrides.set(hash, overrides.get(old.hash));
       if (words >= cfg.minWords) {
         old.raw = raw; old.hash = hash;
         old.payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted: site.promoted(post), hash };
         old.local = U.classify(old.payload, { spice: cfg.spice });
         old.ai = aiResults.get(hash) || null;
-        old.autoFold = undefined; // new text, new decision (reading no longer depends on folding, so no flip-flop)
         if (!old.strip.host.isConnected) { old.box = mountOf(site, post); old.box.insertBefore(old.strip.host, old.box.firstChild); }
         apply(old);
         return;
       }
       remove(old);
     }
-    if (words < cfg.minWords) return;
+    const promoted = site.promoted(post);
+    if (words < cfg.minWords && !promoted) return; // ads are judged at any length
 
-    const payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted: site.promoted(post), hash };
+    const payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted, hash };
     const local = U.classify(payload, { spice: cfg.spice });
     const strip = U.createStrip(site.id, post);
     // The strip is the first child of the post (or of the block the site says, see site.mount).

@@ -132,8 +132,8 @@
     avatar: (post) => post.querySelector("[data-testid='Tweet-User-Avatar']"),
     name: (post) => post.querySelector("[data-testid='User-Name']"),
     author: (post) => txt(post.querySelector("[data-testid='User-Name']")).split("\n")[0],
-    promoted: (post) => /^(ad|promoted|anzeige)$/im.test(txt(post.querySelector("[data-testid='placementTracking']") || null)) ||
-      Array.from(post.querySelectorAll("span")).some((s) => /^(Ad|Promoted)$/.test(txt(s))),
+    promoted: (post) => !!post.querySelector("[data-testid='placementTracking']") ||
+      Array.from(post.querySelectorAll("span")).some((s) => s.children.length === 0 && /^(Ad|Promoted|Anzeige|Gesponsert|Werbung|Sponsored|Publicidad|Sponsorisé)$/.test(txt(s))),
     links(post, textEl) {
       const out = textEl ? anchors(textEl).filter((l) => !/\/(hashtag|search)|^https?:\/\/(x|twitter)\.com\/[^/]+\/?$/.test(l.href)) : [];
       const card = post.querySelector("[data-testid='card.wrapper']");

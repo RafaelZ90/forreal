@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ForReal – is this post worth your time?",
   "short_name": "ForReal",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "One honest line on every LinkedIn, X and Bluesky post: worth it, maybe or skip. Skipped posts fold away; the real stuff gets a link.",
   "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
   "action": {

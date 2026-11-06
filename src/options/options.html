@@ -16,7 +16,7 @@
 
     <section class="card">
       <h2>What to fold</h2>
-      <p class="hint">By default only certain junk folds away: ads, engagement bait, and posts with almost no signal. Other Skips keep their label but stay open, so you never miss something you wanted.</p>
+      <p class="hint">By default only certain junk folds away: ads, engagement bait, and posts with almost no signal (below 15). Other Skips keep their label but stay open, so you never miss something you wanted.</p>
       <div class="seg" id="collapse">
         <button data-v="skips">Only certain junk</button>
         <button data-v="maybe">Everything but worth-it</button>
@@ -25,6 +25,7 @@
       <label class="range">A post is a Skip below a signal of <b id="th-val">40</b> (Worth it from 65)
         <input type="range" id="threshold" min="10" max="60" step="5">
       </label>
+      <label class="check"><input type="checkbox" id="showPlain"> Also put a line on ordinary posts (“Plain post · Maybe”)</label>
       <label class="range">Leave posts shorter than <b id="mw-val">15</b> words alone
         <input type="range" id="minWords" min="0" max="80" step="5">
       </label>

@@ -6,6 +6,7 @@ globalThis.UNSPIN_DEFAULTS = {
   collapse: "skips", // skips = fold only certain junk (ads, bait, signal < 25) | maybe = fold all but Worth it | never
   threshold: 40, // a post is a Skip below this signal (Worth it from 65)
   jokes: true, // show the translation line on Maybe and Skip posts
+  showPlain: false, // also put a line on ordinary posts with nothing to say
   minWords: 15,
   sites: { linkedin: true, x: true, bsky: true },
   models: {
