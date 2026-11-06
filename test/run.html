@@ -20,7 +20,7 @@ const demo = (posts) => posts.map((p) => ({
   text: p.t, promoted: !!p.promoted, expect: p.expect,
   links: [p.link && { href: p.link.href, text: p.link.text }, p.card && { href: p.card.href, title: p.card.title }].filter(Boolean),
 }));
-const FIXTURES = ["demo-posts.js (LinkedIn)", "demo-posts.js (X)", "fixtures/bsky-live-2026-11-06.json"];
+const FIXTURES = ["demo-posts.js (LinkedIn)", "demo-posts.js (X)", "fixtures/bsky-live-2026-11-06.json", "fixtures/regressions.json"];
 (async () => {
   let pass = 0, fail = 0, total = 0;
   const rows = document.getElementById("rows");
@@ -35,6 +35,7 @@ const FIXTURES = ["demo-posts.js (LinkedIn)", "demo-posts.js (X)", "fixtures/bsk
       let ok = null;
       if (p.expect) ok = v.category === p.expect;
       if (p.expect_not) ok = (ok !== false) && !p.expect_not.includes(v.category);
+      if (p.expect_host) ok = (ok !== false) && !!v.worth && v.worth.host === p.expect_host;
       if (ok === true) pass++; if (ok === false) fail++;
       const tr = document.createElement("tr");
       tr.className = ok === false ? "fail" : ok ? "pass" : "";

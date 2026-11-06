@@ -39,6 +39,7 @@
     id: "linkedin",
     host: /(^|\.)linkedin\.com$/,
     posts: [
+      "[role='listitem'][componentkey^='update-card-focus']", // 2026 markup
       "div.feed-shared-update-v2",
       "div[data-urn^='urn:li:activity']",
       "div[data-id^='urn:li:activity']",
@@ -46,6 +47,9 @@
       "div.occludable-update",
     ],
     text(post) {
+      // 2026 markup: <p><span data-testid="expandable-text-box">…</span><button>…more</button></p>
+      const box = post.querySelector("[data-testid='expandable-text-box']");
+      if (box) return box.closest("p") || box;
       return q(post, [
         ".update-components-text",
         ".feed-shared-inline-show-more-text",
@@ -55,6 +59,13 @@
       ]) || largestTextBlock(post);
     },
     author(post) {
+      // 2026 markup: the author link carries the connection degree ("Name • 2nd"); earlier links may be
+      // "X likes this" context lines. Company posts have no degree, so fall back to the first named profile.
+      const links = Array.from(post.querySelectorAll("a[href*='/in/'], a[href*='/company/']")).filter((a) => !a.closest("[data-testid='expandable-text-box']"));
+      const named = links.map((a) => txt(a).split(/\n|\s\/\s/)[0].replace(/\s*•.*$/, "").trim()).filter(Boolean);
+      const withDegree = links.find((a) => /•\s*(1st|2nd|3rd|1\.|2\.|3\.)/.test(txt(a)));
+      if (withDegree) return txt(withDegree).split(/\n|\s\/\s/)[0].replace(/\s*•.*$/, "").trim();
+      if (named.length) return named[0];
       return txt(q(post, [
         ".update-components-actor__title span[aria-hidden='true']",
         ".update-components-actor__name span[aria-hidden='true']",
@@ -64,11 +75,20 @@
       ])).split("\n")[0];
     },
     promoted(post) {
+      if (Array.from(post.querySelectorAll("span, p")).some((el) => el.children.length === 0 && /^(promoted|gesponsert|anzeige|sponsored)$/i.test(txt(el)))) return true;
       const sub = q(post, [".update-components-actor__sub-description", ".update-components-actor__description", ".feed-shared-actor__sub-description"]);
       return /\b(promoted|gesponsert|sponsored)\b/i.test(txt(sub));
     },
     links(post, textEl) {
       const out = textEl ? anchors(textEl) : [];
+      // external link cards anywhere in the post (2026 markup has no stable class for them)
+      Array.from(post.querySelectorAll("a[href^='http']")).forEach((a) => {
+        let host = "";
+        try { host = new URL(a.href).hostname; } catch (e) { return; }
+        if (/(^|\.)linkedin\.com$/.test(host) || out.some((l) => l.href === a.href)) return;
+        const title = txt(a).split("\n").map((t) => t.trim()).find((t) => t.length > 8 && !/^(learn more|mehr erfahren|apply|register|sign up)$/i.test(t)) || "";
+        out.push({ href: a.href, title, text: title });
+      });
       const card = q(post, [".update-components-article", ".feed-shared-article", ".update-components-entity", "[data-view-name='feed-article']"]);
       if (card) {
         const a = card.querySelector("a[href]");

@@ -142,6 +142,8 @@
     const hash = U.hash(text);
     const old = records.get(post);
     if (old && old.hash === hash && old.card.host.isConnected) return;
+    // LinkedIn's "…more" changes the text (and hash): keep the reader's show/blur choice.
+    if (old && userToggled.has(old.hash) && !userToggled.has(hash)) userToggled.set(hash, userToggled.get(old.hash));
     if (old) { old.card.host.remove(); old.hide.forEach((n) => (n.removeAttribute("data-unspin-blur"), (n.style.minHeight = ""))); post.removeAttribute("data-unspin-dim"); records.delete(post); }
     if (words < cfg.minWords) return;
 

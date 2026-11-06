@@ -38,7 +38,7 @@
       [/\bnew (chapter|adventure|journey|role)\b/, 2],
       [/\b(i('| a)m|i have) (joined|joining)\b/, 4],
       [/\bfirst (day|week) (at|as)\b/, 4],
-      [/\bpromoted to\b/, 4],
+      [/\b(i('ve| have| was| got)( been| just)? promoted|my promotion)\b/, 4], // first person only
       [/\bfreue mich.{0,40}(neue|anzukündigen|bekannt)/, 4],
       [/\bmy last day at\b/, 3],
     ],
@@ -243,9 +243,19 @@
     try { return new URL(href).hostname.replace(/^www\./, ""); } catch (e) { return ""; }
   }
 
+  // LinkedIn wraps outside links: linkedin.com/redir/redirect?url=<real url>
+  function unwrap(href) {
+    try {
+      const u = new URL(href);
+      if (/(^|\.)linkedin\.com$/.test(u.hostname) && /^\/(redir|safety)\//.test(u.pathname) && u.searchParams.get("url")) return u.searchParams.get("url");
+    } catch (e) { /* not a URL */ }
+    return href;
+  }
+
   function bestLink(links) {
     const cands = [];
-    for (const l of links || []) {
+    for (let l of links || []) {
+      if (l && l.href) l = Object.assign({}, l, { href: unwrap(l.href) });
       if (!l || !l.href || JUNK_LINK.test(l.href)) continue;
       const label = (l.title || l.text || "").trim();
       if (/^[#@]/.test(label)) continue;
@@ -316,7 +326,7 @@
     const shortLines = lines.filter((l) => l.length < 70).length;
     const emojis = (text.match(/\p{Extended_Pictographic}/gu) || []).length;
     const hashtags = (text.match(/#[\p{L}\d_]+/gu) || []).length;
-    const numbered = lines.filter((l) => /^(\d+[.)]|[👉✅🔹▪️➡️→•✔️❌⚡️🚀💡📌🔥]\s?)/u.test(l)).length;
+    const numbered = lines.filter((l) => /^(\d+[.)]|[-–]\s|[👉✅🔹▪️➡️→•✔️❌⚡️🚀💡📌🔥]\s?)/u.test(l)).length;
 
     const s = {};
     for (const k in P) s[k] = score(lower, P[k]);
@@ -331,6 +341,9 @@
     // Paper/event vocabulary alone is cheap; demand some evidence before calling it substance.
     if (s.paper < 6) s.paper = 0;
     if (s.event < 5) s.event = 0;
+    // A workshop that already happened is a report, not an invitation.
+    if (s.event && !/\b(register|registration|sign ?up|rsvp|apply (now|here|by|before|today)|deadline|tickets?|join us|save the date|cfp|call for)\b/i.test(text) &&
+        /\b(last (week|weekend|month|year)|yesterday|recently|wrapped up|was (a|an|such)|we had)\b/i.test(text)) s.event = 0;
     if (s.take < 3) s.take = 0;
     if (s.hype < 4) s.hype = 0;
     if (s.insight < 3 || words < 60) s.insight = 0;

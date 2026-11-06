@@ -79,6 +79,7 @@ Then open <http://127.0.0.1:8765/test/demo.html> (add `?spice=savage` or `?colla
 
 - LinkedIn and X change their markup often. The adapters try several selectors and fall back to the largest text
   block, but expect to adjust `sites.js` now and then.
-- The adapters were tested on a demo feed with the sites' markup, not yet on the live sites.
+- Tested live on 2026-11-06: LinkedIn (new feed markup: `[role=listitem][componentkey^=update-card-focus]`,
+  `[data-testid=expandable-text-box]`) and Bluesky, by injecting the content scripts into the page. X not yet.
 - The local decoder is English-first; use an AI engine for other languages.
 - Mobile: Firefox for Android and Safari on iOS (via the converter) can run it; the mobile apps cannot.
