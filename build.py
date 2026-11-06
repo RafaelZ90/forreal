@@ -48,11 +48,12 @@ def main():
     print("built", ", ".join(str(p.relative_to(ROOT)) for p in sorted(DIST.glob("*.zip"))))
 
     # Keep the copy that Chrome loads from the Desktop in step (only if it exists; never creates it).
-    desktop = pathlib.Path.home() / "Desktop" / "ForReal"
-    if (desktop / "manifest.json").exists():
-        shutil.rmtree(desktop)
-        shutil.copytree(chrome, desktop)
-        print("updated", desktop)
+    for name in ("ForReal", "Unspin"):  # "Unspin" was the folder's earlier name; refresh whichever Chrome loads
+        desktop = pathlib.Path.home() / "Desktop" / name
+        if (desktop / "manifest.json").exists():
+            shutil.rmtree(desktop)
+            shutil.copytree(chrome, desktop)
+            print("updated", desktop)
 
 
 if __name__ == "__main__":

@@ -180,6 +180,7 @@
         old.payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted: site.promoted(post), hash };
         old.local = U.classify(old.payload, { spice: cfg.spice });
         old.ai = aiResults.get(hash) || null;
+        old.autoFold = undefined; // new text, new decision (reading no longer depends on folding, so no flip-flop)
         if (!old.strip.host.isConnected) { old.box = mountOf(site, post); old.box.insertBefore(old.strip.host, old.box.firstChild); }
         apply(old);
         return;

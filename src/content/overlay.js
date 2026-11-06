@@ -30,6 +30,9 @@
   .cat { color: var(--muted); white-space: nowrap; font-weight: 600; }
   .sep { color: var(--muted); opacity: .6; }
   .line { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .strip.two { flex-wrap: wrap; row-gap: 2px; }
+  .about { flex: 0 0 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted);
+    padding-left: calc(var(--icon-w, 18px) + var(--gap, 4px)); }
   .line.joke { font-style: italic; }
   .link {
     white-space: nowrap; font-weight: 700; color: var(--worth); text-decoration: none;
@@ -167,11 +170,15 @@
         strip.appendChild(b);
       }
       strip.appendChild(el("span", "chev", "▾"));
+      // Folded: still say in one sentence what the post is about, so the reader can decide to open it.
+      const aboutText = st.folded && v.gist && v.gist !== text ? v.gist : "";
+      strip.classList.toggle("two", !!aboutText);
+      if (aboutText) { const ab = el("span", "about", aboutText); ab.title = aboutText; strip.appendChild(ab); }
 
       // Details: what it says, the joke, how sure, and a way to correct the label.
       details.textContent = "";
       details.hidden = !open;
-      if (v.gist && text !== v.gist) {
+      if (v.gist && text !== v.gist && !st.folded) {
         const p = el("p"); p.append(el("span", "k", "What it says: "), document.createTextNode(v.gist)); details.appendChild(p);
       }
       if (v.roast && text !== v.roast && st.tier !== "kind") {

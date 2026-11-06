@@ -220,6 +220,7 @@
     return (t || "")
       .replace(/ /g, " ")
       .replace(/(…|\.\.\.)\s*(see more|more|mehr anzeigen|show more)\s*$/i, "")
+      .replace(/[\u2018\u2019\u02bc]/g, "'") // LinkedIn writes We’re / I’m with curly apostrophes
       .replace(/[ \t]+/g, " ")
       .replace(/\n{3,}/g, "\n\n")
       .trim();
@@ -326,7 +327,7 @@
     const shortLines = lines.filter((l) => l.length < 70).length;
     const emojis = (text.match(/\p{Extended_Pictographic}/gu) || []).length;
     const hashtags = (text.match(/#[\p{L}\d_]+/gu) || []).length;
-    const numbered = lines.filter((l) => /^(\d+[.)]|[-–]\s|[👉✅🔹▪️➡️→•✔️❌⚡️🚀💡📌🔥]\s?)/u.test(l)).length;
+    const numbered = lines.filter((l) => /^(\d+[.)]|[👉✅🔹▪️➡️→•✔️❌⚡️🚀💡📌🔥]\s?)/u.test(l)).length;
 
     const s = {};
     for (const k in P) s[k] = score(lower, P[k]);
@@ -345,7 +346,8 @@
     if (s.event && !/\b(register|registration|sign ?up|rsvp|apply (now|here|by|before|today)|deadline|tickets?|join us|save the date|cfp|call for)\b/i.test(text) &&
         /\b(last (week|weekend|month|year)|yesterday|recently|wrapped up|was (a|an|such)|we had)\b/i.test(text)) s.event = 0;
     if (s.take < 3) s.take = 0;
-    if (s.hype < 4) s.hype = 0;
+    // AI words alone are not hype; it takes hype phrasing ("game-changer", "you're falling behind").
+    if (s.hype < 4 || !new RegExp(P.hype[1][0].source, "i").test(lower)) s.hype = 0;
     if (s.insight < 3 || words < 60) s.insight = 0;
 
     // Choose category: personal hardship always wins; then priority order on ties.
