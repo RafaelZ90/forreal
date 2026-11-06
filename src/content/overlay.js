@@ -123,6 +123,7 @@
   function createStrip(siteId, post) {
     const host = document.createElement("div");
     host.className = "unspin-host";
+    try { host.setAttribute("data-forreal", (globalThis.chrome || {}).runtime.getManifest().version); } catch (e) { /* demo page */ }
     host.setAttribute("data-theme", themeFor(siteId, post));
     const shadow = host.attachShadow({ mode: "open" });
     const style = document.createElement("style");
