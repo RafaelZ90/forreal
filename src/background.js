@@ -1,5 +1,5 @@
 /*
- * Unspin – background worker.
+ * ForReal – background worker.
  * engine "auto" (default): rules + Chrome's on-device model where this computer has it; nothing leaves the computer.
  * engine "local": rules only. Advanced engines (Claude, OpenRouter, Ollama) send post text to the provider the
  * user chose, nowhere else. Keys live in chrome.storage.local (this device only) and are never logged.
@@ -131,7 +131,7 @@ async function callOpenRouter(post, cfg) {
   if (!key) throw new Error("No OpenRouter API key set (Settings).");
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
-    headers: { "content-type": "application/json", authorization: "Bearer " + key, "X-Title": "Unspin" },
+    headers: { "content-type": "application/json", authorization: "Bearer " + key, "X-Title": "ForReal" },
     body: JSON.stringify({
       model: cfg.models.openrouter,
       max_tokens: 2048,

@@ -22,6 +22,8 @@ async function render() {
   $("enabled").onchange = (e) => api.storage.sync.set({ enabled: e.target.checked });
   seg("spice", s.spice, (v) => api.storage.sync.set({ spice: v }));
   seg("collapse", s.collapse, (v) => api.storage.sync.set({ collapse: v }));
+  $("jokes").checked = s.jokes !== false;
+  $("jokes").onchange = (e) => api.storage.sync.set({ jokes: e.target.checked });
   $("engine").textContent = ENGINES[s.engine] || s.engine;
 
   const { stats } = await api.storage.local.get("stats");
@@ -30,7 +32,7 @@ async function render() {
   $("s-posts").textContent = st.posts;
   $("s-min").textContent = st.minutes < 10 ? st.minutes.toFixed(1) : Math.round(st.minutes);
   $("s-fluff").textContent = st.posts ? Math.round((100 * st.fluff) / st.posts) + "%" : "–";
-  $("worth-line").textContent = st.worth ? "→ " + st.worth + (st.worth === 1 ? " post" : " posts") + " today pointed to something worth your time." : "";
+  $("worth-line").textContent = st.worth ? "✅ " + st.worth + (st.worth === 1 ? " post" : " posts") + " today worth your time." : "";
 
   const bars = $("bars");
   bars.textContent = "";
@@ -38,7 +40,7 @@ async function render() {
   if (!top.length) {
     const p = document.createElement("p");
     p.className = "empty";
-    p.textContent = "Open LinkedIn, X or Bluesky and scroll. Today's spin report appears here.";
+    p.textContent = "Open LinkedIn, X or Bluesky and scroll. Today's report appears here.";
     bars.appendChild(p);
   }
   const max = top.length ? top[0][1] : 1;

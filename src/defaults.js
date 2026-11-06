@@ -1,13 +1,12 @@
-/* Shared defaults for every part of Unspin (content, popup, options, background). */
+/* Shared defaults for every part of ForReal (content, popup, options, background). */
 globalThis.UNSPIN_DEFAULTS = {
   enabled: true,
   engine: "auto", // auto = rules + Chrome on-device AI if present | local = rules only | anthropic | openrouter | ollama
   spice: "snarky", // mild | snarky | savage
-  collapse: "all", // all = blur every decoded post | fluff = only low-signal ones | never
-  threshold: 45, // posts below this signal get collapsed / dimmed
-  dim: true,
-  showGist: true,
-  minWords: 30,
+  collapse: "skips", // skips = fold Skip posts | maybe = fold all but Worth it | never
+  threshold: 40, // a post is a Skip below this signal (Worth it from 65)
+  jokes: true, // show the translation line on Maybe and Skip posts
+  minWords: 15,
   sites: { linkedin: true, x: true, bsky: true },
   models: {
     anthropic: "claude-opus-5-5",

@@ -1,5 +1,6 @@
 /*
- * Unspin – content script entry. Finds posts, decodes them, mounts cards, collapses the fluff.
+ * ForReal – content script entry. Finds posts, judges them, puts a one-line verdict on top,
+ * folds the posts not worth your time.
  */
 (function () {
   "use strict";
@@ -8,20 +9,18 @@
   if (!U || window.__unspinStarted) return;
   window.__unspinStarted = true;
 
+  const WORTH_AT = 65; // signal from which a post is "Worth it"
   let cfg = null;
   const counted = new Set(); // hashes already in today's stats
-  const userToggled = new Map(); // hash -> collapsed (user's choice wins)
-  const aiResults = new Map(); // hash -> ai verdict
+  const userFold = new Map(); // hash -> folded (the reader's choice wins)
+  const aiResults = new Map(); // hash -> ai lines
+  const overrides = new Map(); // hash -> category the reader chose
   const records = new Map(); // post element -> record
+  const CATEGORY_LIST = Object.keys(U.CATS).map((k) => [k, U.CATS[k].label]);
 
-  // Page-level style: hide collapsed originals, dim noise.
   const style = document.createElement("style");
   style.id = "unspin-global";
-  style.textContent = `
-    [data-unspin-blur] { filter: blur(5px) saturate(.5); opacity: .4; user-select: none; pointer-events: none; overflow: hidden !important; max-height: 14em; transition: filter .2s, opacity .2s; }
-    [data-unspin-dim] { opacity: .55; transition: opacity .2s ease; }
-    [data-unspin-dim]:hover, [data-unspin-dim]:focus-within { opacity: 1; }
-  `;
+  style.textContent = `[data-unspin-fold] > :not(.unspin-host) { display: none !important; }`;
   (document.head || document.documentElement).appendChild(style);
 
   function send(msg) {
@@ -40,61 +39,65 @@
     return site ? [{ el: document, site }] : [];
   }
 
-  function siblingsToHide(site, textEl) {
-    const out = [textEl];
-    if (site.id === "x") {
-      const more = textEl.parentElement && textEl.parentElement.parentElement && textEl.parentElement.parentElement.querySelector("[data-testid='tweet-text-show-more-link']");
-      if (more) out.push(more);
-    }
-    return out;
+  function tierOf(v) {
+    if (v.kind) return "kind";
+    if (v.signal >= WORTH_AT) return "worth";
+    if (v.signal < cfg.threshold) return "skip";
+    return "maybe";
   }
-
-  function shouldCollapse(v) {
-    if (v.kind) return false;
-    if (cfg.collapse === "all") return true;
+  function autoFold(tier) {
     if (cfg.collapse === "never") return false;
-    return v.signal < cfg.threshold;
+    if (tier === "skip") return true;
+    return cfg.collapse === "maybe" && tier === "maybe";
   }
 
-  // Keep the blurred text at least as tall as the card on top of it.
-  function syncHeight(rec) {
-    const t = rec.hide[0];
-    if (!rec.collapsed) { t.style.minHeight = ""; return; }
-    const cs = getComputedStyle(rec.card.cardEl);
-    const h = rec.card.cardEl.offsetHeight + parseFloat(cs.marginTop || 0) + parseFloat(cs.marginBottom || 0);
-    if (h) t.style.minHeight = Math.ceil(h) + "px";
+  function verdictOf(rec) {
+    let v = rec.local;
+    if (overrides.has(rec.hash)) v = U.relabel(v, overrides.get(rec.hash), cfg.spice);
+    if (rec.ai) v = Object.assign({}, v, { roast: rec.ai.roast || v.roast, gist: rec.ai.gist || v.gist },
+      rec.ai.category && !overrides.has(rec.hash) && U.CATS[rec.ai.category] ? { // own-provider engines may re-label
+        category: rec.ai.category, label: U.CATS[rec.ai.category].label, kind: !!U.CATS[rec.ai.category].kind,
+        signal: typeof rec.ai.signal === "number" ? rec.ai.signal : v.signal, worth: rec.ai.worth || v.worth,
+      } : {});
+    return v;
   }
-  const sizes = typeof ResizeObserver === "function" ? new ResizeObserver((entries) => {
-    entries.forEach((e) => { const rec = byCard.get(e.target); if (rec) syncHeight(rec); });
-  }) : null;
-  const byCard = new WeakMap();
 
   function apply(rec) {
-    const v = rec.ai ? Object.assign({}, rec.local, rec.ai, {
-      label: (U.CATS[rec.ai.category] || {}).label || rec.local.label,
-      emoji: (U.CATS[rec.ai.category] || {}).emoji || rec.local.emoji,
-      kind: rec.ai.category ? !!(U.CATS[rec.ai.category] || {}).kind : rec.local.kind,
-      engine: rec.ai.engine,
-    }) : rec.local;
-    const collapsed = userToggled.has(rec.hash) ? userToggled.get(rec.hash) : shouldCollapse(v);
-    rec.hide.forEach((n) => (collapsed ? n.setAttribute("data-unspin-blur", "") : n.removeAttribute("data-unspin-blur")));
-    // Blurred: the card floats over the post text. Shown: the card sits above it.
-    rec.card.host.style.cssText = collapsed ? "display:block;position:relative;height:0;z-index:3" : "display:block";
-    if (cfg.dim && !collapsed && !v.kind && v.signal < cfg.threshold - 15) rec.post.setAttribute("data-unspin-dim", "");
-    else rec.post.removeAttribute("data-unspin-dim");
-    rec.card.update(v, {
-      collapsed,
-      showGist: cfg.showGist,
+    const v = verdictOf(rec);
+    const tier = tierOf(v);
+    const folded = userFold.has(rec.hash) ? userFold.get(rec.hash) : autoFold(tier);
+    rec.post.toggleAttribute("data-unspin-fold", folded);
+    rec.strip.update(v, {
+      tier, folded, canFold: tier !== "worth" && tier !== "kind",
+      jokes: cfg.jokes !== false,
       engineState: rec.engineState,
-      error: rec.error,
-      onToggle: () => { userToggled.set(rec.hash, !collapsed); apply(rec); },
+      categories: CATEGORY_LIST,
+      onFold: () => { userFold.set(rec.hash, !folded); apply(rec); },
+      onRelabel: (cat) => relabel(rec, v, cat),
     });
-    rec.collapsed = collapsed;
-    syncHeight(rec);
     if (!counted.has(rec.hash)) {
       counted.add(rec.hash);
-      send({ type: "stats", data: { words: v.words, minutes: v.minutes, collapsed, fluff: !!(U.CATS[v.category] || {}).fluff, worth: !!v.worth, category: v.category } });
+      send({ type: "stats", data: { words: v.words, minutes: v.minutes, collapsed: folded, fluff: tier === "skip", worth: tier === "worth", category: v.category } });
     }
+  }
+
+  // The reader says the label is wrong: remember it for this post, and keep an example for tuning the rules.
+  async function relabel(rec, v, cat) {
+    overrides.set(rec.hash, cat);
+    userFold.delete(rec.hash);
+    apply(rec);
+    try {
+      const got = await api.storage.local.get(["overrides", "corrections"]);
+      const ov = got.overrides || {};
+      ov[rec.hash] = cat;
+      const keys = Object.keys(ov);
+      if (keys.length > 2000) keys.slice(0, keys.length - 2000).forEach((k) => delete ov[k]);
+      const corr = (got.corrections || []).concat([{
+        at: new Date().toISOString(), site: rec.payload.site, from: v.category, to: cat,
+        text: rec.payload.text.slice(0, 1200), links: (rec.payload.links || []).slice(0, 3).map((l) => l.href),
+      }]).slice(-300);
+      await api.storage.local.set({ overrides: ov, corrections: corr });
+    } catch (e) { /* storage unavailable: the correction still applies on this page */ }
   }
 
   // Ask the AI only for posts near the viewport.
@@ -111,7 +114,6 @@
     const r = el.getBoundingClientRect();
     return r.bottom > -600 && r.top < innerHeight + 600 && (r.width || r.height);
   }
-
   // Fallback for when IntersectionObserver is throttled (background tabs, some embedded views).
   function askVisible() {
     if (!cfg || cfg.engine === "local") return;
@@ -122,93 +124,108 @@
     if (cfg.engine === "local" || rec.asked) return;
     rec.asked = true;
     if (aiResults.has(rec.hash)) { rec.ai = aiResults.get(rec.hash); rec.engineState = "ai"; apply(rec); return; }
-    if (cfg.engine !== "auto") { rec.engineState = "loading"; apply(rec); } // auto: show the rules' verdict until the AI answers
     const hash = rec.hash;
     const post = Object.assign({}, rec.payload, { hint: { category: rec.local.category, label: rec.local.label } });
     send({ type: "analyze", post }).then((r) => {
-      if (rec.hash !== hash) return; // post was recycled meanwhile
-      if (!r || r.skip) { rec.engineState = "local"; }
-      else if (r.error) { rec.engineState = cfg.engine === "auto" ? "local" : "error"; rec.error = r.error; }
-      else { rec.ai = r; rec.engineState = "ai"; aiResults.set(hash, r); }
-      apply(rec);
+      if (rec.hash !== hash || !records.has(rec.post)) return; // post was recycled meanwhile
+      if (r && !r.skip && !r.error) { rec.ai = r; rec.engineState = "ai"; aiResults.set(hash, r); apply(rec); }
     });
+  }
+
+  function remove(rec) {
+    rec.strip.host.remove();
+    rec.post.removeAttribute("data-unspin-fold");
+    io.unobserve(rec.post);
+    records.delete(rec.post);
   }
 
   function processPost(site, post) {
     const textEl = site.text(post);
     if (!textEl) return;
-    const text = U.cleanText(textEl.innerText || textEl.textContent);
-    const words = text ? text.split(/\s+/).length : 0;
-    const hash = U.hash(text);
+    const raw = textEl.textContent || ""; // cheap check first; innerText only when something changed
     const old = records.get(post);
-    if (old && old.hash === hash && old.card.host.isConnected) return;
-    // LinkedIn's "…more" changes the text (and hash): keep the reader's show/blur choice.
-    if (old && userToggled.has(old.hash) && !userToggled.has(hash)) userToggled.set(hash, userToggled.get(old.hash));
-    if (old) { old.card.host.remove(); old.hide.forEach((n) => (n.removeAttribute("data-unspin-blur"), (n.style.minHeight = ""))); post.removeAttribute("data-unspin-dim"); records.delete(post); }
+    if (old && old.raw === raw && old.strip.host.isConnected) return;
+    const text = U.cleanText(textEl.innerText || raw);
+    const hash = U.hash(text);
+    if (old && old.hash === hash && old.strip.host.isConnected) { old.raw = raw; return; }
+    // LinkedIn's "…more" changes the text (and hash): keep the reader's choices.
+    if (old && userFold.has(old.hash) && !userFold.has(hash)) userFold.set(hash, userFold.get(old.hash));
+    if (old && overrides.has(old.hash) && !overrides.has(hash)) overrides.set(hash, overrides.get(old.hash));
+    if (old) remove(old);
+    const words = text ? text.split(/\s+/).length : 0;
     if (words < cfg.minWords) return;
 
-    const links = site.links(post, textEl);
-    const payload = { site: site.id, text, author: site.author(post), links, promoted: site.promoted(post), hash };
+    const payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted: site.promoted(post), hash };
     const local = U.classify(payload, { spice: cfg.spice });
-    const card = U.createCard(site.id, post);
-    textEl.parentNode.insertBefore(card.host, textEl);
-    const rec = { post, hash, payload, local, card, hide: siblingsToHide(site, textEl), engineState: cfg.engine === "local" || cfg.engine === "auto" ? "local" : "loading" };
+    const strip = U.createStrip(site.id, post);
+    // The strip is the post's first child. In a side-by-side (row) flex layout it gets its own full-width row.
+    const cs = getComputedStyle(post);
+    if (/flex/.test(cs.display) && !/column/.test(cs.flexDirection)) {
+      post.style.flexWrap = "wrap";
+      strip.host.style.cssText = "display:block;flex:0 0 100%;width:100%";
+    }
+    post.insertBefore(strip.host, post.firstChild);
+    const rec = { post, raw, hash, payload, local, strip, engineState: "local" };
     records.set(post, rec);
-    byCard.set(card.cardEl, rec);
-    if (sizes) sizes.observe(card.cardEl);
     apply(rec);
     if (cfg.engine !== "local") io.observe(post);
   }
 
   function scan() {
+    pending = false;
     if (!cfg || !cfg.enabled) return;
     for (const { el, site } of scopes()) {
       if (!site || cfg.sites[site.id] === false) continue;
       U.findPosts(site, el).forEach((p) => {
-        try { processPost(site, p); } catch (e) { console.debug("[unspin]", e); }
+        try { processPost(site, p); } catch (e) { console.debug("[forreal]", e); }
       });
     }
+    records.forEach((rec) => { if (!rec.post.isConnected) records.delete(rec.post); });
     askVisible();
   }
 
   function teardown() {
-    records.forEach((rec, post) => {
-      rec.card.host.remove();
-      rec.hide.forEach((n) => (n.removeAttribute("data-unspin-blur"), (n.style.minHeight = "")));
-      post.removeAttribute("data-unspin-dim");
-      io.unobserve(post);
-    });
-    records.clear();
+    Array.from(records.values()).forEach(remove);
     aiResults.clear();
   }
 
-  let timer = null;
-  const schedule = () => { clearTimeout(timer); timer = setTimeout(scan, 250); };
-  let scrollTimer = null;
-  addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(askVisible, 200); }, { passive: true });
-
+  // Scan at most every 200 ms while the page changes. (A debounce that waits for quiet never fires on
+  // LinkedIn, whose feed changes constantly.) Also scan a few times right after load and navigation.
+  let pending = false;
+  const schedule = () => { if (!pending) { pending = true; setTimeout(scan, 200); } };
+  const burst = () => [300, 1000, 2500, 5000].forEach((t) => setTimeout(schedule, t));
   new MutationObserver((muts) => {
-    // ignore our own insertions
-    if (muts.every((m) => Array.from(m.addedNodes).every((n) => n.classList && n.classList.contains("unspin-host")))) return;
-    schedule();
+    for (const m of muts) {
+      for (const n of m.addedNodes) if (!(n.classList && n.classList.contains("unspin-host"))) return schedule();
+      if (m.type === "characterData") return schedule();
+    }
   }).observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  let scrollTimer = null;
+  addEventListener("scroll", () => { clearTimeout(scrollTimer); scrollTimer = setTimeout(() => { schedule(); askVisible(); }, 150); }, { passive: true });
+  let lastUrl = location.href;
+  setInterval(() => { if (location.href !== lastUrl) { lastUrl = location.href; burst(); } }, 500); // in-app navigation
 
   // Follow the site's light/dark switch.
   const themeWatch = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
-  if (themeWatch && themeWatch.addEventListener) themeWatch.addEventListener("change", () => records.forEach((r) => r.card.retheme()));
+  if (themeWatch && themeWatch.addEventListener) themeWatch.addEventListener("change", () => records.forEach((r) => r.strip.retheme()));
 
   api.storage.onChanged.addListener((changes, area) => {
     if (area !== "sync") return;
     globalThis.unspinSettings().then((s) => {
       cfg = s;
       teardown();
-      userToggled.clear();
+      userFold.clear();
       scan();
     });
   });
 
-  globalThis.unspinSettings().then((s) => {
+  Promise.all([
+    globalThis.unspinSettings(),
+    api.storage.local.get("overrides").then((r) => r.overrides || {}, () => ({})),
+  ]).then(([s, ov]) => {
+    Object.keys(ov).forEach((k) => overrides.set(k, ov[k]));
     cfg = s;
     scan();
+    burst();
   });
 })();

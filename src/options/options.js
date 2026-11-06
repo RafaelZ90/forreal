@@ -26,15 +26,16 @@ function seg(id, value, onPick) {
 function showProvider(engine) {
   document.querySelectorAll(".provider").forEach((p) => p.classList.toggle("on", p.dataset.for === engine));
   $("test-row").style.display = engine === "local" ? "none" : "flex";
+  $("test").textContent = engine === "auto" ? "Test the on-device AI" : "Test with a sample post";
   $("ai-status").style.display = engine === "auto" ? "flex" : "none";
   if (ORIGINS[engine]) $("advanced").open = true;
 }
 
 const AI_TEXT = {
   available: "✓ Chrome's on-device AI is ready. It writes the lines; nothing leaves this computer.",
-  downloadable: "Chrome can download its on-device AI for free. Until then Unspin uses its rules.",
-  downloading: "Chrome is downloading its on-device AI… Unspin uses its rules meanwhile.",
-  unavailable: "This browser or computer has no built-in AI, so Unspin uses its rules. That works fine.",
+  downloadable: "Chrome can download its on-device AI for free. Until then ForReal uses its rules.",
+  downloading: "Chrome is downloading its on-device AI… ForReal uses its rules meanwhile.",
+  unavailable: "This browser or computer has no built-in AI, so ForReal uses its rules. That works fine.",
 };
 async function aiStatus() {
   const r = await api.runtime.sendMessage({ type: "aiStatus" }).catch(() => ({ status: "unavailable" }));
@@ -89,10 +90,22 @@ async function init() {
   $("minWords").oninput = () => ($("mw-val").textContent = $("minWords").value);
   $("minWords").onchange = () => save({ minWords: Number($("minWords").value) });
 
-  ["dim", "showGist"].forEach((k) => {
-    $(k).checked = !!s[k];
-    $(k).onchange = () => save({ [k]: $(k).checked });
-  });
+  $("jokes").checked = s.jokes !== false;
+  $("jokes").onchange = () => save({ jokes: $("jokes").checked });
+
+  async function corrections() {
+    const { corrections: list = [] } = await api.storage.local.get("corrections");
+    $("corr-count").textContent = list.length ? list.length + (list.length === 1 ? " correction saved." : " corrections saved.") : "No corrections yet.";
+    $("corr-copy").hidden = $("corr-clear").hidden = !list.length;
+    return list;
+  }
+  corrections();
+  $("corr-copy").onclick = async () => {
+    const list = await corrections();
+    await navigator.clipboard.writeText(JSON.stringify(list, null, 1));
+    $("corr-count").textContent = "Copied " + list.length + ". Paste them to whoever tunes the rules.";
+  };
+  $("corr-clear").onclick = async () => { await api.storage.local.remove("corrections"); corrections(); };
   document.querySelectorAll("[data-site]").forEach((c) => {
     c.checked = s.sites[c.dataset.site] !== false;
     c.onchange = () => {

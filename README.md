@@ -1,30 +1,30 @@
-# Unspin – the feed decoder
+# ForReal – is this post worth your time?
 
-A browser extension that decodes LinkedIn, X and Bluesky posts into one honest line, folds away the fluff, and points
-you to what is actually worth your attention.
+A browser extension for LinkedIn, X and Bluesky. Every post gets one line at the top:
 
-> **Jordan Pierce** · 💼 New job · signal 29
-> “New job at Northwind Labs. Please be happy for me.”
-> ▸ Read the original (98 words) · ≈ 26 s of your life saved
+> ✅ **Worth it** · Research · Decision Problems in DAO Governance  `→ papers.ssrn.com`
+>
+> 🟡 **Maybe** · Hot take · *An opinion, delivered with confidence.*
+>
+> ⛔ **Skip** · Humblebrag · *I'm awesome. Read this.*  `Show post`
 
-> **Dr. Amara Okafor** · 📄 Research · signal 85
-> “We published a paper: ‘Decision Problems in DAO Governance’. This one might actually be worth it.”
-> **→ Worth your time** Decision Problems in DAO Governance · papers.ssrn.com
-
-The site keeps looking like itself. The card is drawn in the site's own fonts, radii and light/dark colours, inside a
-shadow root so neither side's CSS leaks.
+Skipped posts fold down to that one line, text and pictures included, so the feed gets shorter, not longer (the demo
+feed: 7,254 px → 4,120 px). Worth-it posts stay open with the link up front. Click a line for what the post actually
+says, the joke, the score, and "Wrong label?".
 
 ## What it does
 
-- **Decodes every post** into a category (new job, humblebrag, engagement bait, fake life lesson, broetry, sales pitch,
-  AI hype, listicle, ad, hiring, personal, research, event, launch, actual insight, hot take), a one-line roast and a
-  one-line gist of what the post actually says. The post itself is blurred behind them; one click shows it.
-- **Scores the signal** from 0 to 100. Posts below your threshold get their text folded away, and the worst ones are
-  faded out. One click brings the original back.
-- **Points to the real thing:** a paper, workshop, tool, dataset or job link gets a green *→ Worth your time* button.
-- **Never roasts hardship:** grief, illness and lay-offs get a plain, kind line at every spice level.
-- **Spice levels:** mild, snarky, savage.
-- **Daily spin report** in the toolbar popup: posts decoded, minutes saved, share of pure fluff, top genres.
+- **Verdict:** a signal score 0–100 becomes ✅ Worth it (65+), 🟡 Maybe, or ⛔ Skip (below 40, adjustable).
+- **Genre:** new job, humblebrag, engagement bait, fake life lesson, broetry, sales pitch, AI hype, listicle, ad,
+  hiring, personal, research, event, launch, actual insight, hot take, plain post.
+- **Points to the real thing:** a paper, workshop, tool or dataset link sits right in the line (LinkedIn's redirect
+  links are unwrapped).
+- **Jokes:** the honest translation of the post (mild / snarky / savage), on Maybe and Skip lines; can be switched off.
+  Grief, illness and lay-offs are never joked about and never folded.
+- **Fold:** skips (default), everything except worth-it, or nothing.
+- **Corrections:** "Wrong label?" re-labels the post, remembers it, and keeps the example locally; the settings page
+  copies them for tuning the rules.
+- **Daily report** in the toolbar popup: posts judged, minutes saved, share skipped, top genres.
 
 ## Engines
 
@@ -60,8 +60,8 @@ src/defaults.js            shared settings
 src/background.js          AI providers, queue, cache, stats (service worker / Firefox event page)
 src/content/classifier.js  local decoder: categories, roasts, signal, gist, best link
 src/content/sites.js       site adapters (LinkedIn, X, Bluesky): post, text, author, links, ads
-src/content/overlay.js     the card (shadow DOM, per-site themes)
-src/content/main.js        finds posts, mounts cards, folds/dims, asks the AI near the viewport
+src/content/overlay.js     the verdict line (shadow DOM, per-site themes)
+src/content/main.js        finds posts, adds the line, folds skips, asks the AI near the viewport
 src/popup/, src/options/   toolbar popup and settings page
 test/demo.html             made-up LinkedIn- and X-style feed that runs the real content scripts
 ```

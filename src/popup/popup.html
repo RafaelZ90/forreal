@@ -2,30 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Unspin</title>
+  <title>ForReal</title>
   <link rel="stylesheet" href="../ui.css">
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header class="hero">
-    <div class="logo"><span class="mark">◐</span><span><b>un</b>spin</span></div>
-    <label class="switch" title="Turn Unspin on or off">
+    <div class="logo"><span class="mark">◐</span><span><b>For</b>Real</span></div>
+    <label class="switch" title="Turn ForReal on or off">
       <input type="checkbox" id="enabled">
       <span class="slider"></span>
     </label>
   </header>
-  <p class="tagline">Your feed, minus the spin.</p>
+  <p class="tagline">Is it worth your time? For real.</p>
 
   <section class="stats">
-    <div class="stat"><b id="s-posts">0</b><span>posts decoded</span></div>
+    <div class="stat"><b id="s-posts">0</b><span>posts judged</span></div>
     <div class="stat"><b id="s-min">0</b><span>minutes saved</span></div>
-    <div class="stat"><b id="s-fluff">0%</b><span>pure fluff</span></div>
+    <div class="stat"><b id="s-fluff">0%</b><span>skipped</span></div>
   </section>
   <section class="bars" id="bars"></section>
   <p class="worth-line" id="worth-line"></p>
 
   <section class="group">
-    <div class="glabel">Spice level</div>
+    <div class="glabel">Jokes <label class="mini"><input type="checkbox" id="jokes"> on</label></div>
     <div class="seg" id="spice">
       <button data-v="mild">🙂 Mild</button>
       <button data-v="snarky">😏 Snarky</button>
@@ -34,16 +34,16 @@
   </section>
 
   <section class="group">
-    <div class="glabel">Original posts</div>
+    <div class="glabel">Fold</div>
     <div class="seg" id="collapse">
-      <button data-v="all">Blur all</button>
-      <button data-v="fluff">Blur fluff</button>
-      <button data-v="never">Show all</button>
+      <button data-v="skips">Skips</button>
+      <button data-v="maybe">All but worth-it</button>
+      <button data-v="never">Nothing</button>
     </div>
   </section>
 
   <div class="permission" id="perm" hidden>
-    <span>Unspin needs access to the feed sites.</span>
+    <span>ForReal needs access to the feed sites.</span>
     <button id="grant" class="primary">Allow</button>
   </div>
 

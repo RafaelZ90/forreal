@@ -1,88 +1,69 @@
 /*
- * The decoded card. Lives in a shadow root so the site's CSS can't touch it and ours can't leak.
- * Themes follow the host site so LinkedIn still feels like LinkedIn and X like X.
+ * ForReal – the verdict strip. One line at the top of each post: is it worth your time?
+ * Lives in a shadow root so the site's CSS can't touch it. Themed per site (LinkedIn, X, Bluesky; light/dark).
  */
 (function (root) {
   "use strict";
 
-  const ACCENT = {
-    job: "#c37d16", brag: "#d0530c", bait: "#cc1016", lesson: "#a35a00", broetry: "#b24020",
-    sales: "#c2185b", hype: "#7b3fe4", listicle: "#a35a00", ad: "#6b6b6b", take: "#d0530c", plain: "#5e6b78",
-    hiring: "#0a66c2", personal: "#8a6fb5", paper: "#057642", event: "#057642", release: "#057642", insight: "#057642",
+  const TIERS = {
+    worth: { icon: "✅", label: "Worth it" },
+    maybe: { icon: "🟡", label: "Maybe" },
+    skip: { icon: "⛔", label: "Skip" },
+    kind: { icon: "🤍", label: "Personal" },
   };
 
   const CSS = `
   :host { all: initial; display: block; }
   * { box-sizing: border-box; }
-  .card {
-    --accent: #0a66c2;
-    font-family: var(--font);
-    color: var(--fg);
-    background: color-mix(in srgb, var(--accent) 7%, var(--bg));
-    border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
-    border-left: 3px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 10px 12px 10px 12px;
-    margin: var(--margin);
-    line-height: 1.35;
-    animation: in .25s ease-out;
-    position: relative;
+  .strip {
+    --tier: #5e6b78;
+    font-family: var(--font); color: var(--fg); font-size: 13px; line-height: 1.3;
+    display: flex; align-items: center; gap: 8px; min-width: 0;
+    padding: var(--pad); margin: var(--margin);
+    background: color-mix(in srgb, var(--tier) 7%, transparent);
+    border-radius: var(--radius); cursor: pointer; user-select: none;
+    animation: in .18s ease-out;
   }
-  .card.over { position: absolute; top: 0; left: 0; right: 0; z-index: 3;
-    background: color-mix(in srgb, var(--accent) 6%, var(--bg));
-    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 28px rgba(0,0,0,.14); }
-  @keyframes in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
-  .top { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-  .chip {
-    display: inline-flex; align-items: center; gap: 5px; font-weight: 600; font-size: 12px;
-    color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent);
-    padding: 2px 8px 2px 6px; border-radius: 999px; white-space: nowrap;
+  .strip:hover { background: color-mix(in srgb, var(--tier) 12%, transparent); }
+  @keyframes in { from { opacity: 0; } to { opacity: 1; } }
+  .tier { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--tier); white-space: nowrap; }
+  .cat { color: var(--muted); white-space: nowrap; font-weight: 600; }
+  .sep { color: var(--muted); opacity: .6; }
+  .line { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .line.joke { font-style: italic; }
+  .link {
+    white-space: nowrap; font-weight: 700; color: var(--worth); text-decoration: none;
+    padding: 2px 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--worth) 40%, transparent);
   }
-  .meter { display: inline-flex; gap: 2px; align-items: center; }
-  .meter i { width: 6px; height: 10px; border-radius: 2px; background: var(--line); }
-  .meter i.on { background: var(--sig); }
-  .sig { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--sig); }
-  .spacer { flex: 1; }
-  .engine { font-size: 11px; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
-  .engine.ai { color: #7b3fe4; border-color: color-mix(in srgb, #7b3fe4 40%, transparent); }
-  .engine.err { color: #cc1016; }
-  .brand { font-weight: 700; letter-spacing: -.01em; font-size: 11px; color: var(--muted); opacity: .8; }
-  .brand b { color: var(--fg); }
-  .roast { margin: 7px 0 0; font-size: var(--roast-size); font-weight: 600; letter-spacing: -.005em; }
-  .roast.kind { font-weight: 500; }
-  .roast.loading { color: var(--muted); }
-  .gist { margin: 3px 0 0; font-size: 14px; color: var(--muted); }
-  .gist b { font-weight: 600; color: var(--fg); opacity: .75; }
-  .worth {
-    display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 7px 10px; border-radius: calc(var(--radius) - 2px);
-    background: var(--bg); border: 1px solid color-mix(in srgb, #057642 35%, var(--line));
-    text-decoration: none; color: var(--fg); font-size: 13px; transition: border-color .15s, transform .15s;
+  .link:hover { background: color-mix(in srgb, var(--worth) 10%, transparent); }
+  .btn { font: inherit; font-weight: 600; color: var(--link); background: none; border: 0; padding: 0; cursor: pointer; white-space: nowrap; }
+  .btn:hover { text-decoration: underline; }
+  .chev { color: var(--muted); font-size: 11px; transition: transform .15s; }
+  .open .chev { transform: rotate(180deg); }
+  .details {
+    font-family: var(--font); color: var(--fg); font-size: 13px; line-height: 1.4;
+    margin: var(--details-margin); padding: 8px 12px 10px; border-left: 2px solid color-mix(in srgb, var(--tier) 50%, transparent);
   }
-  .worth:hover { border-color: #057642; transform: translateY(-1px); }
-  .worth .lbl { color: #057642; font-weight: 700; white-space: nowrap; }
-  .worth .t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-  .worth .h { color: var(--muted); font-size: 12px; white-space: nowrap; margin-left: auto; }
-  .worth.nolink { cursor: default; }
-  .actions { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 12px; color: var(--muted); }
-  button {
-    font: inherit; font-weight: 600; font-size: 12px; cursor: pointer; color: var(--link);
-    background: transparent; border: 0; padding: 3px 0; border-radius: 4px;
-  }
-  button:hover { text-decoration: underline; }
-  .saved { margin-left: auto; }
-  :host([data-theme$="dark"]) .chip, :host([data-theme="x-dim"]) .chip { color: color-mix(in srgb, var(--accent) 55%, white); }
-  :host([data-theme$="dark"]) .worth .lbl, :host([data-theme="x-dim"]) .worth .lbl { color: #3fb950; }
-  :host([data-theme$="dark"]) .card, :host([data-theme="x-dim"]) .card { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
-  :host([data-theme^="linkedin"]) .card { --radius: 8px; --roast-size: 15px; --margin: 4px 16px 8px; }
-  :host([data-theme^="x"]) .card { --radius: 16px; --roast-size: 15px; --margin: 6px 0 8px; }
-  :host([data-theme^="bsky"]) .card { --radius: 12px; --roast-size: 15px; --margin: 6px 0 8px; }
-  :host([data-theme="linkedin-light"]) { --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Fira Sans", Ubuntu, Oxygen, Cantarell, "Droid Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif; --bg: #ffffff; --fg: rgba(0,0,0,.9); --muted: rgba(0,0,0,.6); --line: rgba(140,140,140,.3); --link: #0a66c2; }
-  :host([data-theme="linkedin-dark"]) { --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; --bg: #1b1f23; --fg: rgba(255,255,255,.9); --muted: rgba(255,255,255,.6); --line: rgba(255,255,255,.18); --link: #71b7fb; }
-  :host([data-theme="x-light"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --bg: #ffffff; --fg: #0f1419; --muted: #536471; --line: #cfd9de; --link: #1d9bf0; }
-  :host([data-theme="x-dim"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --bg: #15202b; --fg: #f7f9f9; --muted: #8b98a5; --line: #38444d; --link: #1d9bf0; }
-  :host([data-theme="x-dark"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --bg: #000000; --fg: #e7e9ea; --muted: #71767b; --line: #2f3336; --link: #1d9bf0; }
-  :host([data-theme="bsky-light"]) { --font: InterVariable, Inter, -apple-system, system-ui, sans-serif; --bg: #ffffff; --fg: #0b0f14; --muted: #6f869f; --line: #d4dbe2; --link: #1083fe; }
-  :host([data-theme="bsky-dark"]) { --font: InterVariable, Inter, -apple-system, system-ui, sans-serif; --bg: #161e27; --fg: #f1f3f5; --muted: #8798b0; --line: #2e4052; --link: #208bfe; }
+  .details p { margin: 0 0 6px; }
+  .details .k { color: var(--muted); font-weight: 600; }
+  .details .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; color: var(--muted); font-size: 12px; }
+  select { font: inherit; font-size: 12px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; }
+  .thanks { color: var(--worth); font-weight: 600; }
+  :host([data-tier="worth"]) .strip, :host([data-tier="worth"]) .details { --tier: var(--worth); }
+  :host([data-tier="maybe"]) .strip, :host([data-tier="maybe"]) .details { --tier: var(--maybe); }
+  :host([data-tier="skip"]) .strip, :host([data-tier="skip"]) .details { --tier: var(--skip); }
+  :host([data-tier="kind"]) .strip, :host([data-tier="kind"]) .details { --tier: #8a6fb5; }
+  :host([data-theme^="linkedin"]) { --radius: 6px; --pad: 7px 12px; --margin: 8px 12px 0; --details-margin: 4px 16px 0; }
+  :host([data-theme^="x"]) { --radius: 10px; --pad: 6px 10px; --margin: 6px 12px 2px; --details-margin: 4px 16px 0; }
+  :host([data-theme^="bsky"]) { --radius: 8px; --pad: 6px 10px; --margin: 6px 12px 2px; --details-margin: 4px 16px 0; }
+  :host([data-folded]) .strip { margin-bottom: 8px; }
+  :host([data-theme="linkedin-light"]) { --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; --bg: #fff; --fg: rgba(0,0,0,.9); --muted: rgba(0,0,0,.6); --line: rgba(140,140,140,.35); --link: #0a66c2; --worth: #057642; --maybe: #9a6b00; --skip: #b3261e; }
+  :host([data-theme="linkedin-dark"]) { --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; --bg: #1b1f23; --fg: rgba(255,255,255,.9); --muted: rgba(255,255,255,.6); --line: rgba(255,255,255,.2); --link: #71b7fb; --worth: #5ec27a; --maybe: #e8b339; --skip: #f07167; }
+  :host([data-theme="x-light"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --bg: #fff; --fg: #0f1419; --muted: #536471; --line: #cfd9de; --link: #1d9bf0; --worth: #00875a; --maybe: #9a6b00; --skip: #c62828; }
+  :host([data-theme="x-dim"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, sans-serif; --bg: #15202b; --fg: #f7f9f9; --muted: #8b98a5; --line: #38444d; --link: #1d9bf0; --worth: #3fcf8e; --maybe: #f2c94c; --skip: #ff6b6b; }
+  :host([data-theme="x-dark"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, sans-serif; --bg: #000; --fg: #e7e9ea; --muted: #71767b; --line: #2f3336; --link: #1d9bf0; --worth: #3fcf8e; --maybe: #f2c94c; --skip: #ff6b6b; }
+  :host([data-theme="bsky-light"]) { --font: InterVariable, Inter, -apple-system, system-ui, sans-serif; --bg: #fff; --fg: #0b0f14; --muted: #6f869f; --line: #d4dbe2; --link: #1083fe; --worth: #00875a; --maybe: #9a6b00; --skip: #c62828; }
+  :host([data-theme="bsky-dark"]) { --font: InterVariable, Inter, -apple-system, system-ui, sans-serif; --bg: #161e27; --fg: #f1f3f5; --muted: #8798b0; --line: #2e4052; --link: #208bfe; --worth: #3fcf8e; --maybe: #f2c94c; --skip: #ff6b6b; }
   `;
 
   function luminance(rgb) {
@@ -100,8 +81,7 @@
     return getComputedStyle(document.body).backgroundColor || "rgb(255,255,255)";
   }
   function themeFor(siteId, post) {
-    const bg = backgroundOf(post);
-    const l = luminance(bg);
+    const l = luminance(backgroundOf(post));
     if (siteId === "x") return l > 0.5 ? "x-light" : l < 0.03 ? "x-dark" : "x-dim";
     if (siteId === "bsky") return l > 0.5 ? "bsky-light" : "bsky-dark";
     return l > 0.5 ? "linkedin-light" : "linkedin-dark";
@@ -113,16 +93,14 @@
     if (text != null) e.textContent = text;
     return e;
   }
-
-  function sigColor(s) {
-    return s >= 65 ? "#057642" : s >= 40 ? "#b07d00" : "#cc1016";
-  }
+  const mins = (m) => (m < 1 ? Math.round(m * 60) + " s" : m.toFixed(1) + " min");
 
   /**
-   * Create a card host. Returns {host, update(verdict, state)}.
-   * state: {collapsed, onToggle, engineState: "local"|"loading"|"ai"|"error", error, showGist}
+   * createStrip(siteId, post) -> {host, update(v, st), retheme()}
+   * v:  verdict {category, label, roast, gist, signal, worth, words, minutes}
+   * st: {tier, folded, canFold, jokes, engineState, categories:[[id,label]], onFold(), onRelabel(cat)}
    */
-  function createCard(siteId, post) {
+  function createStrip(siteId, post) {
     const host = document.createElement("div");
     host.className = "unspin-host";
     host.setAttribute("data-theme", themeFor(siteId, post));
@@ -130,61 +108,84 @@
     const style = document.createElement("style");
     style.textContent = CSS;
     shadow.appendChild(style);
-    const card = el("div", "card");
-    card.setAttribute("role", "note");
-    shadow.appendChild(card);
+    const strip = el("div", "strip");
+    strip.setAttribute("role", "button");
+    strip.tabIndex = 0;
+    const details = el("div", "details");
+    details.hidden = true;
+    shadow.append(strip, details);
+    let open = false;
+    let thanks = false;
+    let last = null;
 
     function update(v, st) {
-      card.textContent = "";
-      card.classList.toggle("over", !!st.collapsed);
-      card.style.setProperty("--accent", ACCENT[v.category] || "#0a66c2");
-      card.style.setProperty("--sig", sigColor(v.signal));
-      card.setAttribute("aria-label", "Unspin: " + v.label + ". " + v.roast);
+      last = [v, st];
+      host.setAttribute("data-tier", st.tier);
+      host.toggleAttribute("data-folded", !!st.folded);
+      const T = TIERS[st.tier];
+      strip.textContent = "";
+      strip.classList.toggle("open", open);
+      strip.title = "ForReal · signal " + v.signal + "/100 · click for details";
+      strip.appendChild(el("span", "tier", T.icon + " " + T.label));
+      if (st.tier !== "kind") strip.append(el("span", "cat", v.label), el("span", "sep", "·"));
 
-      const top = el("div", "top");
-      const chip = el("span", "chip");
-      chip.append(el("span", "", v.emoji), el("span", "", v.label));
-      const meter = el("span", "meter");
-      meter.title = "Signal " + v.signal + "/100: how much this post is worth your attention";
-      const on = Math.round(v.signal / 20);
-      for (let i = 0; i < 5; i++) meter.appendChild(el("i", i < on ? "on" : ""));
-      top.append(chip, meter, el("span", "sig", String(v.signal)), el("span", "spacer"));
-      const eng = el("span", "engine");
-      if (st.engineState === "ai") { eng.classList.add("ai"); eng.textContent = "✨ AI"; eng.title = v.engine === "chrome" ? "Lines written by Chrome's on-device AI; genre and score by Unspin's rules" : "Decoded by " + v.engine; }
-      else if (st.engineState === "loading") { eng.textContent = "✨ …"; eng.title = "Asking the AI"; }
-      else if (st.engineState === "error") { eng.classList.add("err"); eng.textContent = "local"; eng.title = "AI failed, showing the local decoder: " + (st.error || ""); }
-      else { eng.textContent = "local"; eng.title = "Decoded on this device, no AI"; }
-      const brand = el("span", "brand");
-      brand.innerHTML = "<b>un</b>spin";
-      top.append(eng, brand);
-      card.appendChild(top);
+      // The one line: worth-it posts say what is worth it; the rest get the joke (or the gist).
+      let text, joke = false;
+      if (st.tier === "worth") text = (v.worth && v.worth.title) || v.gist;
+      else if (st.tier === "kind") text = v.gist || v.roast;
+      else if (st.jokes) { text = v.roast; joke = true; }
+      else text = v.gist || v.roast;
+      strip.appendChild(el("span", "line" + (joke ? " joke" : ""), text));
 
-      const roast = el("p", "roast" + (v.kind ? " kind" : ""), v.kind ? v.roast : "“" + v.roast + "”");
-      card.appendChild(roast);
-
-      if (st.showGist && v.gist && v.gist !== v.roast) card.appendChild(el("p", "gist", v.gist));
-
-      if (v.worth && (v.worth.href || v.worth.title)) {
-        const a = el(v.worth.href ? "a" : "div", "worth" + (v.worth.href ? "" : " nolink"));
-        if (v.worth.href) { a.href = v.worth.href; a.target = "_blank"; a.rel = "noopener noreferrer"; }
-        a.append(el("span", "lbl", "→ Worth your time"), el("span", "t", v.worth.title || v.worth.host), el("span", "h", v.worth.host || ""));
-        card.appendChild(a);
+      if (v.worth && v.worth.href) {
+        const a = el("a", "link", "→ " + (v.worth.host || "open"));
+        a.href = v.worth.href; a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.title = v.worth.title || v.worth.href;
+        strip.appendChild(a);
       }
+      if (st.folded || st.canFold) {
+        const b = el("button", "btn", st.folded ? "Show post" : "Fold");
+        b.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); st.onFold(); });
+        strip.appendChild(b);
+      }
+      strip.appendChild(el("span", "chev", "▾"));
 
-      const actions = el("div", "actions");
-      const btn = el("button", "", st.collapsed ? "Show post (" + v.words + " words)" : "Blur it again");
-      btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); st.onToggle(); });
-      actions.appendChild(btn);
-      const mins = v.minutes < 1 ? Math.round(v.minutes * 60) + " s" : v.minutes.toFixed(1) + " min";
-      actions.appendChild(el("span", "saved", st.collapsed ? "≈ " + mins + " saved" : "≈ " + mins + " read"));
-      card.appendChild(actions);
+      // Details: what it says, the joke, how sure, and a way to correct the label.
+      details.textContent = "";
+      details.hidden = !open;
+      if (v.gist && text !== v.gist) {
+        const p = el("p"); p.append(el("span", "k", "What it says: "), document.createTextNode(v.gist)); details.appendChild(p);
+      }
+      if (v.roast && text !== v.roast && st.tier !== "kind") {
+        const p = el("p"); p.append(el("span", "k", "Translation: "), document.createTextNode("“" + v.roast + "”")); details.appendChild(p);
+      }
+      const row = el("div", "row");
+      row.appendChild(el("span", "", "Signal " + v.signal + "/100 · " + v.words + " words · " + mins(v.minutes) +
+        " · " + (st.engineState === "ai" ? "lines by on-device AI" : "rules")));
+      if (thanks) row.appendChild(el("span", "thanks", "Saved, thanks"));
+      else {
+        const sel = el("select");
+        sel.appendChild(new Option("Wrong label?", ""));
+        st.categories.forEach(([id, label]) => { if (id !== v.category) sel.appendChild(new Option(label, id)); });
+        sel.addEventListener("change", () => { if (sel.value) { thanks = true; st.onRelabel(sel.value); } });
+        row.appendChild(sel);
+      }
+      details.appendChild(row);
     }
 
-    // Clicks inside the card must not open the post (LinkedIn/X make whole posts clickable).
+    const toggle = (e) => {
+      if (e && e.target && e.target.closest && e.target.closest("a,button,select")) return;
+      open = !open;
+      if (last) update(last[0], last[1]);
+    };
+    strip.addEventListener("click", toggle);
+    strip.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    // Clicks inside must not open the post (LinkedIn/X make whole posts clickable).
     host.addEventListener("click", (e) => e.stopPropagation());
-    return { host, update, cardEl: card, retheme: () => host.setAttribute("data-theme", themeFor(siteId, post)) };
+    return { host, update, retheme: () => host.setAttribute("data-theme", themeFor(siteId, post)) };
   }
 
   root.Unspin = root.Unspin || {};
-  root.Unspin.createCard = createCard;
+  root.Unspin.createStrip = createStrip;
+  root.Unspin.TIERS = TIERS;
 })(typeof globalThis !== "undefined" ? globalThis : this);

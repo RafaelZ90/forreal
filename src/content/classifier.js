@@ -401,6 +401,7 @@
       gist: gistOf(text),
       signal,
       worth,
+      link: link ? { href: link.href, title: link.title, host: link.host } : null,
       words,
       minutes: Math.max(0.1, words / 230),
       engine: "local",
@@ -409,7 +410,20 @@
     };
   }
 
+  // The reader corrected the label: same post, new genre, matching line and score.
+  function relabel(v, category, spice) {
+    const cat = CATS[category];
+    if (!cat) return v;
+    let signal = cat.substance ? 78 : cat.fluff ? 25 : category === "hiring" ? 60 : 50;
+    if (category === "bait" || category === "ad") signal = 12;
+    const roast = pick(ROASTS[category][spice || "snarky"] || ROASTS[category].snarky, v.hash)
+      .replace("{org}", "").replace("{role}", "").replace("{thing}", "");
+    const worth = v.link && (cat.substance || !cat.fluff) ? v.link : null;
+    return Object.assign({}, v, { category, label: cat.label, emoji: cat.emoji, kind: !!cat.kind, roast, signal, worth, corrected: true });
+  }
+
   root.Unspin = root.Unspin || {};
+  root.Unspin.relabel = relabel;
   root.Unspin.classify = classify;
   root.Unspin.CATS = CATS;
   root.Unspin.hash = hash;
