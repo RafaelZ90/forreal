@@ -7,7 +7,7 @@ const api = globalThis.browser || globalThis.chrome;
 
 if (!globalThis.UNSPIN_DEFAULTS && typeof importScripts === "function") importScripts("defaults.js");
 
-const CATEGORIES = ["job", "brag", "bait", "lesson", "broetry", "sales", "hype", "listicle", "ad", "hiring", "personal", "paper", "event", "release", "insight", "take"];
+const CATEGORIES = ["job", "brag", "bait", "lesson", "broetry", "sales", "hype", "listicle", "ad", "hiring", "personal", "paper", "event", "release", "insight", "take", "plain"];
 
 const SCHEMA = {
   type: "object",
@@ -34,9 +34,9 @@ function systemPrompt(spice) {
     "You decode social-media posts (LinkedIn, X, Bluesky) for a busy reader who wants to know in two seconds what a post really says and whether anything in it deserves attention.",
     "",
     "Return JSON with these fields:",
-    "- category: one of " + CATEGORIES.join(", ") + ". 'job' = job change/new role; 'brag' = humblebrag/award/milestone; 'bait' = engagement farming; 'lesson' = anecdote turned into business wisdom; 'broetry' = one thought split into many one-line paragraphs; 'sales' = selling something; 'hype' = AI/tech hype without substance; 'listicle' = generic tips list; 'ad' = sponsored; 'hiring' = job opening; 'personal' = grief, illness, layoff, hardship; 'paper' = research output; 'event' = workshop/talk/conference/webinar; 'release' = a tool, product, dataset or code release you can actually use; 'insight' = a genuine argument with substance; 'take' = plain opinion.",
+    "- category: one of " + CATEGORIES.join(", ") + ". 'job' = job change/new role; 'brag' = humblebrag/award/milestone; 'bait' = engagement farming; 'lesson' = anecdote turned into business wisdom; 'broetry' = one thought split into many one-line paragraphs; 'sales' = selling something; 'hype' = AI/tech hype without substance; 'listicle' = generic tips list; 'ad' = sponsored; 'hiring' = job opening; 'personal' = grief, illness, layoff, hardship; 'paper' = research output; 'event' = workshop/talk/conference/webinar; 'release' = a tool, product, dataset or code release you can actually use; 'insight' = a genuine argument with substance; 'take' = a provocative opinion; 'plain' = an ordinary post with no particular spin.",
     "- roast: the post's honest inner voice in first person, at most 12 words. Example: a long new-job post -> \"New job. Please be happy for me.\" A long humblebrag -> \"I'm awesome. Read this.\" Tone: " + SPICE[spice] + " For 'personal' never joke: write a kind, plain one-liner (e.g. \"Lost my job. Looking for a new role.\").",
-    "- gist: what the post literally says, neutral, at most 25 words, with the concrete facts (names, numbers, dates, titles).",
+    "- gist: the reader will NOT see the post, only roast and gist. So the gist must carry what the post actually says: neutral, one sentence, at most 25 words, with the concrete facts (names, numbers, dates, titles), no padding and no repetition of the roast.",
     "- signal: 0-100, how much a busy professional gains from opening this. Bait, ads and self-congratulation score low; a real paper, workshop, dataset, tool, job opening with details, or data-backed argument scores high.",
     "- worth_title: if the post points to something concrete worth attention (a paper, workshop, event, tool, dataset, article, job), its short title; otherwise an empty string.",
     "- worth_url: the URL of that thing, copied exactly from the links given; otherwise an empty string. Never invent URLs.",

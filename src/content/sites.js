@@ -106,7 +106,13 @@
     host: /(^|\.)bsky\.app$/,
     posts: ["[data-testid^='feedItem-by-']", "[data-testid^='postThreadItem-by-']"],
     text: (post) => post.querySelector("[data-testid='postText']") || largestTextBlock(post),
-    author: (post) => txt(post.querySelector("a[href^='/profile/'] span, a[href^='/profile/']")).split("\n")[0],
+    author(post) {
+      // data-testid="feedItem-by-<handle>"; the first link to that profile with visible text is the display name
+      // (an earlier link may be "Reposted by …").
+      const handle = (post.getAttribute("data-testid") || "").replace(/^(feedItem|postThreadItem)-by-/, "");
+      const name = Array.from(post.querySelectorAll("a[href='/profile/" + handle + "']")).map(txt).find((t) => t && t[0] !== "@");
+      return (name || handle).split("\n")[0];
+    },
     promoted: () => false,
     links(post, textEl) {
       const out = textEl ? anchors(textEl).filter((l) => !/bsky\.app\/(profile|hashtag|search)/.test(l.href)) : [];

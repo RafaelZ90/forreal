@@ -11,7 +11,7 @@
   <main>
     <header>
       <div class="logo"><span class="mark">◐</span><span><b>un</b>spin</span></div>
-      <p class="sub">Every post gets one honest line. The fluff folds away, the real stuff gets a <span class="good">→ Worth your time</span> link.</p>
+      <p class="sub">Every post is blurred behind one or two honest lines. The real stuff gets a <span class="good">→ Worth your time</span> link.</p>
     </header>
 
     <section class="card">
@@ -61,17 +61,18 @@
     </section>
 
     <section class="card">
-      <h2>What to fold away</h2>
+      <h2>What to blur</h2>
+      <p class="hint">A blurred post shows only its one- or two-line decode on top. One click shows the post.</p>
       <div class="seg" id="collapse">
-        <button data-v="fluff">Hide fluff only</button>
-        <button data-v="all">Hide every original</button>
-        <button data-v="never">Show everything</button>
+        <button data-v="all">Blur every post</button>
+        <button data-v="fluff">Blur fluff only</button>
+        <button data-v="never">Never blur</button>
       </div>
       <label class="range">Fluff is anything below a signal of <b id="th-val">45</b>
         <input type="range" id="threshold" min="10" max="90" step="5">
       </label>
       <label class="check"><input type="checkbox" id="dim"> Fade out the worst posts (signal 15 below that)</label>
-      <label class="check"><input type="checkbox" id="showGist"> Show a literal one-line gist under the roast</label>
+      <label class="check"><input type="checkbox" id="showGist"> Add a second line with what the post actually says</label>
       <label class="range">Leave posts shorter than <b id="mw-val">30</b> words alone
         <input type="range" id="minWords" min="0" max="120" step="10">
       </label>

@@ -27,6 +27,7 @@
     release:  { label: "Launch / tool",    emoji: "🛠️", fluff: false, substance: true },
     insight:  { label: "Actual insight",   emoji: "💡", fluff: false, substance: true },
     take:     { label: "Hot take",         emoji: "🌶️", fluff: false },
+    plain:    { label: "Plain post",       emoji: "💬", fluff: false },
   };
 
   // [regex, weight]. Case-insensitive. English first, some German.
@@ -88,21 +89,28 @@
       [/\b(laid off|been let go|lost my job|open to work|#opentowork|looking for (my next|new) (role|opportunit))\b/, 5],
     ],
     paper: [
-      [/\b(paper|preprint|article|study|journal|proceedings|conference paper|dissertation|thesis)\b/, 2],
+      [/\b(paper|preprint|article|stud(y|ies)|journal|proceedings|conference paper|dissertation|thesis|experiments?|replications?)\b/, 2],
+      [/\b(pre-?regist\w*|effect sizes?|data and code|open data|replicated|peer[- ]reviewed|meta-analysis)\b/, 3],
       [/\b(published|accepted|forthcoming) (in|at)\b/, 3],
       [/\b(arxiv|ssrn|doi\.org|10\.\d{4,}\/|researchgate|acm|ieee|springer|elsevier|aisel|misq|nature|science)\b/, 4],
       [/\b(we (find|show|propose|study|examine|analy[sz]e)|our (findings|results|data))\b/, 3],
       [/\b(n ?= ?\d+|sample of \d+|regression|survey|interviews)\b/, 2],
     ],
     event: [
-      [/\b(workshop|webinar|meetup|conference|summit|panel|hackathon|seminar|tutorial|bootcamp)\b/, 3],
+      [/\b(workshop|webinar|meetup|conference|summit|panel|hackathon|seminar|tutorial|bootcamp|livestream|live stream|fireside chat|ama|q&a|book launch|town hall)\b/, 3],
+      [/\b\d{1,2}(:\d{2})?\s?(am|pm)\b|\bnoon\b|\b(tomorrow|tonight|today) at\b|\b\d{1,2}(:\d{2})?\s?(cet|cest|est|edt|pst|pdt|utc|gmt)\b/, 2],
       [/\b(register|registration|sign ?up|rsvp|join us)\b/, 2],
       [/\b(on|this) (mon|tue|wed|thu|fri|sat|sun)[a-z]*\b|\b\d{1,2}(st|nd|rd|th)? (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}\b/, 2],
       [/\b(cfp|call for (papers|proposals|submissions)|deadline)\b/, 3],
     ],
     release: [
-      [/\b(we (just )?(launched|released|shipped|open[- ]sourced)|now (live|available)|introducing|v\d+\.\d+)\b/, 3],
+      [/\b(we (just )?(launched|released|shipped|open[- ]sourced)|now (live|available)|introducing|announcing|starting today|now you can|new in beta|rolling out|v\d+\.\d+)\b/, 3],
       [/\b(github\.com|gitlab|huggingface|open[- ]source|repo|dataset|api|plugin|extension)\b/, 2],
+    ],
+    take: [
+      [/\b(unpopular opinion|hot take|controversial|overrated|underrated|is dead|is a scam|is a myth|stop (doing|using|saying))\b/, 3],
+      [/\b(the (real )?problem with|nobody (wants|needs|cares)|everyone is wrong|you don'?t need|should(n'?t)? be|must stop)\b/, 2],
+      [/\b(change my mind|fight me|i said what i said)\b/, 3],
     ],
     insight: [
       [/\b(\d+(\.\d+)?%|\$\d|€\d|\d{2,}(,\d{3})+)\b/, 1],
@@ -187,6 +195,11 @@
       snarky: ["Real content. Read it, it's allowed."],
       savage: ["Substance detected. Don't get used to it."],
     },
+    plain: {
+      mild:   ["A normal post. Carry on.", "Nothing to decode here."],
+      snarky: ["A normal post. No spin detected, suspiciously.", "Just words. No agenda found.", "Regular human post. Rare, enjoy it."],
+      savage: ["No spin. Rarer than you'd think.", "A post that's just a post. Frame it."],
+    },
     take: {
       mild:   ["An opinion."],
       snarky: ["An opinion, delivered with confidence."],
@@ -222,7 +235,7 @@
   }
 
   const PAPER_HOSTS = /(doi\.org|arxiv\.org|ssrn\.com|researchgate|aisel\.aisnet|acm\.org|ieee|springer|sciencedirect|tandfonline|wiley|nature\.com|science\.org|jstor|pubsonline\.informs|misq|osf\.io|zenodo|openreview|semanticscholar|scholar\.google)/i;
-  const EVENT_HOSTS = /(eventbrite|meetup\.com|lu\.ma|zoom\.us|teams\.microsoft|hopin|\/events?\/)/i;
+  const EVENT_HOSTS = /(eventbrite|meetup\.com|lu\.ma|zoom\.us|teams\.microsoft|hopin|\.rsvp\/|\/rsvp|\/events?\/)/i;
   const CODE_HOSTS = /(github\.com|gitlab\.com|huggingface\.co|pypi\.org|npmjs\.com|chromewebstore|addons\.mozilla)/i;
   const JUNK_LINK = /(linkedin\.com\/(in|company|feed\/hashtag|school|showcase)\/|linkedin\.com\/search|\/hashtag\/|x\.com\/[^/]+$|twitter\.com\/[^/]+$|x\.com\/(hashtag|search)|bsky\.app\/(profile|search|hashtag)|^#|^mailto:|^javascript:)/i;
 
@@ -316,14 +329,15 @@
     if (link && CODE_HOSTS.test(link.href + link.title)) s.release += 3;
     if (link && EVENT_HOSTS.test(link.href + link.title)) s.event += 3;
     // Paper/event vocabulary alone is cheap; demand some evidence before calling it substance.
-    if (s.paper < 6) s.paper = Math.min(s.paper, 3);
-    if (s.event < 5) s.event = Math.min(s.event, 3);
+    if (s.paper < 6) s.paper = 0;
+    if (s.event < 5) s.event = 0;
+    if (s.take < 3) s.take = 0;
     if (s.hype < 4) s.hype = 0;
     if (s.insight < 3 || words < 60) s.insight = 0;
 
     // Choose category: personal hardship always wins; then priority order on ties.
-    let category = "take", best = 2.5;
-    const order = ["ad", "personal", "hiring", "paper", "event", "release", "job", "bait", "sales", "brag", "lesson", "hype", "broetry", "listicle", "insight"];
+    let category = "plain", best = 2.5;
+    const order = ["ad", "personal", "hiring", "paper", "event", "release", "job", "bait", "sales", "brag", "lesson", "hype", "broetry", "listicle", "insight", "take"];
     for (const k of order) {
       if (k === "personal" && s.personal >= 5) { category = "personal"; best = 99; break; }
       const v = k === "bait" ? s[k] / 2 + 1 : s[k];

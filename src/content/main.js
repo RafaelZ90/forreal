@@ -18,7 +18,7 @@
   const style = document.createElement("style");
   style.id = "unspin-global";
   style.textContent = `
-    [data-unspin-hidden] { display: none !important; }
+    [data-unspin-blur] { filter: blur(5px) saturate(.5); opacity: .4; user-select: none; pointer-events: none; overflow: hidden !important; max-height: 14em; transition: filter .2s, opacity .2s; }
     [data-unspin-dim] { opacity: .55; transition: opacity .2s ease; }
     [data-unspin-dim]:hover, [data-unspin-dim]:focus-within { opacity: 1; }
   `;
@@ -56,6 +56,19 @@
     return v.signal < cfg.threshold;
   }
 
+  // Keep the blurred text at least as tall as the card on top of it.
+  function syncHeight(rec) {
+    const t = rec.hide[0];
+    if (!rec.collapsed) { t.style.minHeight = ""; return; }
+    const cs = getComputedStyle(rec.card.cardEl);
+    const h = rec.card.cardEl.offsetHeight + parseFloat(cs.marginTop || 0) + parseFloat(cs.marginBottom || 0);
+    if (h) t.style.minHeight = Math.ceil(h) + "px";
+  }
+  const sizes = typeof ResizeObserver === "function" ? new ResizeObserver((entries) => {
+    entries.forEach((e) => { const rec = byCard.get(e.target); if (rec) syncHeight(rec); });
+  }) : null;
+  const byCard = new WeakMap();
+
   function apply(rec) {
     const v = rec.ai ? Object.assign({}, rec.local, rec.ai, {
       label: (U.CATS[rec.ai.category] || {}).label || rec.local.label,
@@ -64,8 +77,10 @@
       engine: rec.ai.engine,
     }) : rec.local;
     const collapsed = userToggled.has(rec.hash) ? userToggled.get(rec.hash) : shouldCollapse(v);
-    rec.hide.forEach((n) => (collapsed ? n.setAttribute("data-unspin-hidden", "") : n.removeAttribute("data-unspin-hidden")));
-    if (cfg.dim && !v.kind && v.signal < cfg.threshold - 15) rec.post.setAttribute("data-unspin-dim", "");
+    rec.hide.forEach((n) => (collapsed ? n.setAttribute("data-unspin-blur", "") : n.removeAttribute("data-unspin-blur")));
+    // Blurred: the card floats over the post text. Shown: the card sits above it.
+    rec.card.host.style.cssText = collapsed ? "display:block;position:relative;height:0;z-index:3" : "display:block";
+    if (cfg.dim && !collapsed && !v.kind && v.signal < cfg.threshold - 15) rec.post.setAttribute("data-unspin-dim", "");
     else rec.post.removeAttribute("data-unspin-dim");
     rec.card.update(v, {
       collapsed,
@@ -74,6 +89,8 @@
       error: rec.error,
       onToggle: () => { userToggled.set(rec.hash, !collapsed); apply(rec); },
     });
+    rec.collapsed = collapsed;
+    syncHeight(rec);
     if (!counted.has(rec.hash)) {
       counted.add(rec.hash);
       send({ type: "stats", data: { words: v.words, minutes: v.minutes, collapsed, fluff: !!(U.CATS[v.category] || {}).fluff, worth: !!v.worth, category: v.category } });
@@ -125,7 +142,7 @@
     const hash = U.hash(text);
     const old = records.get(post);
     if (old && old.hash === hash && old.card.host.isConnected) return;
-    if (old) { old.card.host.remove(); old.hide.forEach((n) => n.removeAttribute("data-unspin-hidden")); post.removeAttribute("data-unspin-dim"); records.delete(post); }
+    if (old) { old.card.host.remove(); old.hide.forEach((n) => (n.removeAttribute("data-unspin-blur"), (n.style.minHeight = ""))); post.removeAttribute("data-unspin-dim"); records.delete(post); }
     if (words < cfg.minWords) return;
 
     const links = site.links(post, textEl);
@@ -135,6 +152,8 @@
     textEl.parentNode.insertBefore(card.host, textEl);
     const rec = { post, hash, payload, local, card, hide: siblingsToHide(site, textEl), engineState: cfg.engine === "local" ? "local" : "loading" };
     records.set(post, rec);
+    byCard.set(card.cardEl, rec);
+    if (sizes) sizes.observe(card.cardEl);
     apply(rec);
     if (cfg.engine !== "local") io.observe(post);
   }
@@ -153,7 +172,7 @@
   function teardown() {
     records.forEach((rec, post) => {
       rec.card.host.remove();
-      rec.hide.forEach((n) => n.removeAttribute("data-unspin-hidden"));
+      rec.hide.forEach((n) => (n.removeAttribute("data-unspin-blur"), (n.style.minHeight = "")));
       post.removeAttribute("data-unspin-dim");
       io.unobserve(post);
     });

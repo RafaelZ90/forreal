@@ -18,7 +18,7 @@ shadow root so neither side's CSS leaks.
 
 - **Decodes every post** into a category (new job, humblebrag, engagement bait, fake life lesson, broetry, sales pitch,
   AI hype, listicle, ad, hiring, personal, research, event, launch, actual insight, hot take), a one-line roast and a
-  literal one-line gist.
+  one-line gist of what the post actually says. The post itself is blurred behind them; one click shows it.
 - **Scores the signal** from 0 to 100. Posts below your threshold get their text folded away, and the worst ones are
   faded out. One click brings the original back.
 - **Points to the real thing:** a paper, workshop, tool, dataset or job link gets a green *→ Worth your time* button.
@@ -70,7 +70,7 @@ Run the demo without installing anything:
 python3 -m http.server 8765
 ```
 
-Then open <http://127.0.0.1:8765/test/demo.html> (add `?spice=savage` or `?collapse=never`).
+Then open <http://127.0.0.1:8765/test/demo.html> (add `?spice=savage` or `?collapse=never`) and <http://127.0.0.1:8765/test/run.html> for the classifier checks (demo posts plus real Bluesky posts).
 `python3 test/make_previews.py` writes preview pages for the popup and settings page.
 
 ## Known limits of this first draft

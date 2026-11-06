@@ -3,7 +3,7 @@ globalThis.UNSPIN_DEFAULTS = {
   enabled: true,
   engine: "local", // local | anthropic | openrouter | ollama
   spice: "snarky", // mild | snarky | savage
-  collapse: "fluff", // fluff | all | never
+  collapse: "all", // all = blur every decoded post | fluff = only low-signal ones | never
   threshold: 45, // posts below this signal get collapsed / dimmed
   dim: true,
   showGist: true,

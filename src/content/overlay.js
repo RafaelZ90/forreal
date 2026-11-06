@@ -7,7 +7,7 @@
 
   const ACCENT = {
     job: "#c37d16", brag: "#d0530c", bait: "#cc1016", lesson: "#a35a00", broetry: "#b24020",
-    sales: "#c2185b", hype: "#7b3fe4", listicle: "#a35a00", ad: "#6b6b6b", take: "#5e6b78",
+    sales: "#c2185b", hype: "#7b3fe4", listicle: "#a35a00", ad: "#6b6b6b", take: "#d0530c", plain: "#5e6b78",
     hiring: "#0a66c2", personal: "#8a6fb5", paper: "#057642", event: "#057642", release: "#057642", insight: "#057642",
   };
 
@@ -28,6 +28,9 @@
     animation: in .25s ease-out;
     position: relative;
   }
+  .card.over { position: absolute; top: 0; left: 0; right: 0; z-index: 3;
+    background: color-mix(in srgb, var(--accent) 6%, var(--bg));
+    box-shadow: 0 1px 2px rgba(0,0,0,.06), 0 8px 28px rgba(0,0,0,.14); }
   @keyframes in { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
   .top { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
   .chip {
@@ -48,7 +51,7 @@
   .roast { margin: 7px 0 0; font-size: var(--roast-size); font-weight: 600; letter-spacing: -.005em; }
   .roast.kind { font-weight: 500; }
   .roast.loading { color: var(--muted); }
-  .gist { margin: 4px 0 0; font-size: 13px; color: var(--muted); }
+  .gist { margin: 3px 0 0; font-size: 14px; color: var(--muted); }
   .gist b { font-weight: 600; color: var(--fg); opacity: .75; }
   .worth {
     display: flex; align-items: center; gap: 8px; margin-top: 8px; padding: 7px 10px; border-radius: calc(var(--radius) - 2px);
@@ -133,6 +136,7 @@
 
     function update(v, st) {
       card.textContent = "";
+      card.classList.toggle("over", !!st.collapsed);
       card.style.setProperty("--accent", ACCENT[v.category] || "#0a66c2");
       card.style.setProperty("--sig", sigColor(v.signal));
       card.setAttribute("aria-label", "Unspin: " + v.label + ". " + v.roast);
@@ -158,11 +162,7 @@
       const roast = el("p", "roast" + (v.kind ? " kind" : ""), v.kind ? v.roast : "“" + v.roast + "”");
       card.appendChild(roast);
 
-      if (st.showGist && v.gist && v.gist !== v.roast) {
-        const g = el("p", "gist");
-        g.append(el("b", "", "Literally: "), document.createTextNode(v.gist));
-        card.appendChild(g);
-      }
+      if (st.showGist && v.gist && v.gist !== v.roast) card.appendChild(el("p", "gist", v.gist));
 
       if (v.worth && (v.worth.href || v.worth.title)) {
         const a = el(v.worth.href ? "a" : "div", "worth" + (v.worth.href ? "" : " nolink"));
@@ -172,17 +172,17 @@
       }
 
       const actions = el("div", "actions");
-      const btn = el("button", "", st.collapsed ? "▸ Read the original (" + v.words + " words)" : "▾ Collapse the original");
+      const btn = el("button", "", st.collapsed ? "Show post (" + v.words + " words)" : "Blur it again");
       btn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); st.onToggle(); });
       actions.appendChild(btn);
       const mins = v.minutes < 1 ? Math.round(v.minutes * 60) + " s" : v.minutes.toFixed(1) + " min";
-      actions.appendChild(el("span", "saved", st.collapsed ? "≈ " + mins + " of your life saved" : "≈ " + mins + " read"));
+      actions.appendChild(el("span", "saved", st.collapsed ? "≈ " + mins + " saved" : "≈ " + mins + " read"));
       card.appendChild(actions);
     }
 
     // Clicks inside the card must not open the post (LinkedIn/X make whole posts clickable).
     host.addEventListener("click", (e) => e.stopPropagation());
-    return { host, update, retheme: () => host.setAttribute("data-theme", themeFor(siteId, post)) };
+    return { host, update, cardEl: card, retheme: () => host.setAttribute("data-theme", themeFor(siteId, post)) };
   }
 
   root.Unspin = root.Unspin || {};
