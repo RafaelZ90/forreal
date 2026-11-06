@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Unspin</title>
+  <link rel="stylesheet" href="../ui.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="logo"><span class="mark">◐</span><span><b>un</b>spin</span></div>
+    <label class="switch" title="Turn Unspin on or off">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </header>
+  <p class="tagline">Your feed, minus the spin.</p>
+
+  <section class="stats">
+    <div class="stat"><b id="s-posts">0</b><span>posts decoded</span></div>
+    <div class="stat"><b id="s-min">0</b><span>minutes saved</span></div>
+    <div class="stat"><b id="s-fluff">0%</b><span>pure fluff</span></div>
+  </section>
+  <section class="bars" id="bars"></section>
+  <p class="worth-line" id="worth-line"></p>
+
+  <section class="group">
+    <div class="glabel">Spice level</div>
+    <div class="seg" id="spice">
+      <button data-v="mild">🙂 Mild</button>
+      <button data-v="snarky">😏 Snarky</button>
+      <button data-v="savage">🔥 Savage</button>
+    </div>
+  </section>
+
+  <section class="group">
+    <div class="glabel">Original text</div>
+    <div class="seg" id="collapse">
+      <button data-v="fluff">Hide fluff</button>
+      <button data-v="all">Hide all</button>
+      <button data-v="never">Show all</button>
+    </div>
+  </section>
+
+  <div class="permission" id="perm" hidden>
+    <span>Unspin needs access to the feed sites.</span>
+    <button id="grant" class="primary">Allow</button>
+  </div>
+
+  <footer>
+    <span class="engine" id="engine"></span>
+    <a href="#" id="open-options">Settings</a>
+  </footer>
+  <script src="../defaults.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

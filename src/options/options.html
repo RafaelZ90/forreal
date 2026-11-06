@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unspin settings</title>
+  <link rel="stylesheet" href="../ui.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div class="logo"><span class="mark">◐</span><span><b>un</b>spin</span></div>
+      <p class="sub">Every post gets one honest line. The fluff folds away, the real stuff gets a <span class="good">→ Worth your time</span> link.</p>
+    </header>
+
+    <section class="card">
+      <h2>Decoder</h2>
+      <p class="hint">The local decoder runs in your browser and sends nothing anywhere. An AI engine writes sharper lines and understands any language; it sends the text of posts you scroll past to the provider you pick.</p>
+      <div class="engines" id="engines">
+        <label class="engine-opt"><input type="radio" name="engine" value="local"><span><b>Local</b><small>Free, private, instant. Pattern-based.</small></span></label>
+        <label class="engine-opt"><input type="radio" name="engine" value="anthropic"><span><b>Claude</b><small>Anthropic API, your own key.</small></span></label>
+        <label class="engine-opt"><input type="radio" name="engine" value="openrouter"><span><b>OpenRouter</b><small>Any model, your own key.</small></span></label>
+        <label class="engine-opt"><input type="radio" name="engine" value="ollama"><span><b>Ollama</b><small>Local model on this computer.</small></span></label>
+      </div>
+
+      <div class="provider" data-for="anthropic">
+        <label>API key <input type="password" id="anthropicKey" autocomplete="off" placeholder="sk-ant-…"></label>
+        <label>Model
+          <select id="model-anthropic">
+            <option value="claude-opus-5-5">Claude Opus 5.5 (sharpest lines, about $0.008 per post)</option>
+            <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (about $0.004 per post)</option>
+            <option value="claude-haiku-5-5">Claude Haiku 5.5 (cheapest, about $0.0002 per post)</option>
+          </select>
+        </label>
+      </div>
+      <div class="provider" data-for="openrouter">
+        <label>API key <input type="password" id="openrouterKey" autocomplete="off" placeholder="sk-or-…"></label>
+        <label>Model id <input type="text" id="model-openrouter" placeholder="anthropic/claude-haiku-5.5"></label>
+      </div>
+      <div class="provider" data-for="ollama">
+        <label>Server <input type="text" id="ollamaUrl" placeholder="http://localhost:11434"></label>
+        <label>Model <input type="text" id="model-ollama" placeholder="qwen3:8b"></label>
+        <p class="hint">Start Ollama with <code>OLLAMA_ORIGINS="chrome-extension://*,moz-extension://*" ollama serve</code> so the extension may talk to it.</p>
+      </div>
+      <div class="row" id="test-row">
+        <button class="secondary" id="test">Test with a sample post</button>
+        <span id="test-out" class="hint"></span>
+      </div>
+      <p class="hint small">Keys are stored only on this device (browser extension storage) and sent only to the provider you chose.</p>
+    </section>
+
+    <section class="card">
+      <h2>Tone</h2>
+      <div class="seg" id="spice">
+        <button data-v="mild">🙂 Mild</button>
+        <button data-v="snarky">😏 Snarky</button>
+        <button data-v="savage">🔥 Savage</button>
+      </div>
+      <p class="hint">Posts about grief, illness or losing a job are never roasted, at any level.</p>
+    </section>
+
+    <section class="card">
+      <h2>What to fold away</h2>
+      <div class="seg" id="collapse">
+        <button data-v="fluff">Hide fluff only</button>
+        <button data-v="all">Hide every original</button>
+        <button data-v="never">Show everything</button>
+      </div>
+      <label class="range">Fluff is anything below a signal of <b id="th-val">45</b>
+        <input type="range" id="threshold" min="10" max="90" step="5">
+      </label>
+      <label class="check"><input type="checkbox" id="dim"> Fade out the worst posts (signal 15 below that)</label>
+      <label class="check"><input type="checkbox" id="showGist"> Show a literal one-line gist under the roast</label>
+      <label class="range">Leave posts shorter than <b id="mw-val">30</b> words alone
+        <input type="range" id="minWords" min="0" max="120" step="10">
+      </label>
+    </section>
+
+    <section class="card">
+      <h2>Sites</h2>
+      <label class="check"><input type="checkbox" data-site="linkedin"> LinkedIn</label>
+      <label class="check"><input type="checkbox" data-site="x"> X / Twitter</label>
+      <label class="check"><input type="checkbox" data-site="bsky"> Bluesky</label>
+    </section>
+
+    <section class="card">
+      <h2>Housekeeping</h2>
+      <div class="row">
+        <button class="secondary" id="clear">Clear AI cache</button>
+        <button class="secondary" id="reset-stats">Reset today's stats</button>
+        <span id="house-out" class="hint"></span>
+      </div>
+    </section>
+    <p class="saved" id="saved">Saved</p>
+  </main>
+  <script src="../defaults.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+:root {
+  --bg: #ffffff;
+  --panel: #f6f7f9;
+  --fg: #16181d;
+  --muted: #667085;
+  --line: #e4e7ec;
+  --brand: #6d4aff;
+  --brand-2: #ff4f8b;
+  --good: #057642;
+  --warn: #b07d00;
+  --bad: #cc1016;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #14161b;
+    --panel: #1c1f26;
+    --fg: #eef0f4;
+    --muted: #98a2b3;
+    --line: #2c313a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 14px/1.45 -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+}
+a { color: var(--brand); }
+button { font: inherit; color: inherit; }
+.logo { display: flex; align-items: center; gap: 8px; font-size: 20px; letter-spacing: -.02em; }
+.logo b { font-weight: 800; }
+.mark {
+  display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; color: #fff; font-size: 16px;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+}
+.seg { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 3px; gap: 3px; }
+.seg button {
+  flex: 1; border: 0; background: transparent; padding: 6px 8px; border-radius: 7px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--muted);
+}
+.seg button.on { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.primary {
+  border: 0; border-radius: 8px; padding: 7px 14px; cursor: pointer; font-weight: 700; color: #fff;
+  background: linear-gradient(135deg, var(--brand), var(--brand-2));
+}
+.secondary { border: 1px solid var(--line); border-radius: 8px; padding: 7px 14px; cursor: pointer; font-weight: 600; background: var(--panel); }
+.switch { position: relative; display: inline-block; width: 40px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; inset: 0; background: var(--line); border-radius: 999px; transition: .2s; cursor: pointer; }
+.slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.switch input:checked + .slider { background: linear-gradient(135deg, var(--brand), var(--brand-2)); }
+.switch input:checked + .slider::before { transform: translateX(16px); }
+[hidden] { display: none !important; }

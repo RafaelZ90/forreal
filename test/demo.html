@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unspin demo feed</title>
+<style>
+  body { margin: 0; font: 14px/1.42 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif; background: #f4f2ee; color: rgba(0,0,0,.9); }
+  .bar { position: sticky; top: 0; z-index: 2; background: #fff; border-bottom: 1px solid #e0dfdc; padding: 10px 20px; display: flex; gap: 14px; align-items: center; }
+  .bar b { font-size: 15px; } .bar a { color: #0a66c2; font-size: 13px; }
+  .cols { display: grid; grid-template-columns: minmax(0, 555px) minmax(0, 600px); gap: 28px; justify-content: center; padding: 20px 16px; }
+  @media (max-width: 1100px) { .cols { grid-template-columns: minmax(0, 600px); } }
+  h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: #666; margin: 0 0 8px; }
+  /* LinkedIn-like column */
+  .li .feed-shared-update-v2 { background: #fff; border-radius: 8px; box-shadow: 0 0 0 1px rgba(140,140,140,.2); margin-bottom: 8px; padding: 12px 0 8px; }
+  .li .update-components-actor { display: flex; gap: 8px; padding: 0 16px 8px; }
+  .li .avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg,#9db4c8,#5c7c99); flex: none; }
+  .li .update-components-actor__title { font-weight: 600; font-size: 14px; }
+  .li .update-components-actor__description, .li .update-components-actor__sub-description { font-size: 12px; color: rgba(0,0,0,.6); }
+  .li .update-components-text { padding: 0 16px; white-space: pre-wrap; }
+  .li .update-components-text a { color: #0a66c2; font-weight: 600; text-decoration: none; }
+  .li .social { display: flex; justify-content: space-around; border-top: 1px solid #e8e8e8; margin: 10px 16px 0; padding-top: 6px; color: rgba(0,0,0,.6); font-weight: 600; font-size: 13px; }
+  .li .update-components-article { margin: 10px 0 0; background: #eef3f8; padding: 10px 16px; }
+  .li .update-components-article a { color: inherit; text-decoration: none; }
+  .li .update-components-article__title { font-weight: 600; }
+  /* X-like column */
+  .xcol { background: #000; color: #e7e9ea; border: 1px solid #2f3336; border-radius: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; }
+  .xcol article { display: flex; gap: 12px; padding: 12px 16px; border-bottom: 1px solid #2f3336; }
+  .xcol .av { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg,#444,#888); flex: none; }
+  .xcol .body { min-width: 0; flex: 1; }
+  .xcol [data-testid="User-Name"] { font-weight: 700; } .xcol [data-testid="User-Name"] span { color: #71767b; font-weight: 400; }
+  .xcol [data-testid="tweetText"] { white-space: pre-wrap; margin-top: 2px; }
+  .xcol a { color: #1d9bf0; text-decoration: none; }
+  .xcol [data-testid="card.wrapper"] { border: 1px solid #2f3336; border-radius: 16px; margin-top: 10px; padding: 10px 12px; }
+  .xcol .icons { color: #71767b; font-size: 13px; margin-top: 10px; display: flex; gap: 48px; }
+</style>
+</head>
+<body>
+<div class="bar"><b>Unspin demo feed</b><span>made-up posts, local decoder</span>
+  <a href="?spice=mild">mild</a><a href="?spice=snarky">snarky</a><a href="?spice=savage">savage</a><a href="?collapse=never">show originals</a></div>
+<div class="cols">
+<section class="li" data-unspin-site="linkedin" id="li"><h3>LinkedIn-style feed</h3></section>
+<section data-unspin-site="x"><h3>X-style feed</h3><div class="xcol" id="xf"></div></section>
+</div>
+
+<script>
+const LI = [
+  { a: "Jordan Pierce", d: "Customer Delight Evangelist | Keynote Speaker | Dog Dad", t: `I'm thrilled to announce that I'm starting a new position as Head of Customer Delight at Northwind Labs! 🚀
+
+This journey has been nothing short of incredible. When I started my career 11 years ago, I never imagined I'd be here today.
+
+I want to thank my amazing mentors, my incredible former team at Contoso, my family, and honestly every single one of you who believed in me. 🙏
+
+To everyone who said no to me along the way: thank you. You made me hungrier.
+
+New chapter. Same passion. Let's go! 💪
+
+#NewJob #Grateful #CustomerSuccess #Leadership #Growth #Blessed` },
+  { a: "Dr. Amara Okafor", d: "Associate Professor of Information Systems", t: `Happy to share that our paper "Decision Problems in DAO Governance" has been accepted at MIS Quarterly.
+
+We study 312 decentralized autonomous organizations over four years and find that token-weighted voting concentrates decisions in fewer than 2% of holders, while delegation mechanisms reduce that concentration by about a third.
+
+Huge thanks to my co-authors. The preprint is open access: `, link: { href: "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4800001", text: "ssrn.com/abstract=4800001" } },
+  { a: "Brad Kessler", d: "Founder & CEO | I help B2B founders 10x their pipeline", t: `My 5-year-old taught me everything I know about B2B sales.
+
+Yesterday.
+
+She wanted ice cream.
+
+I said no.
+
+She didn't argue.
+
+She didn't cry.
+
+She asked: "What would make it a yes?"
+
+I froze.
+
+That's discovery.
+
+That's objection handling.
+
+That's closing.
+
+Most sales reps never learn this.
+
+My daughter did it before breakfast.
+
+Agree?
+
+♻️ Repost to help your network.` },
+  { a: "Lena Hoffmann", d: "Research Methods Lead", t: `We're running a free hands-on workshop: Causal Inference for IS Researchers.
+
+When: 14 November, 2–5 pm CET, online.
+What: difference-in-differences, synthetic control, and how to pre-register your design. Bring your own data question, we'll work through three real datasets.
+Who: PhD students and early-career researchers. 40 seats.
+
+Registration is open: `, link: { href: "https://www.eventbrite.com/e/causal-inference-is-workshop", text: "eventbrite.com/e/causal-inference-is-workshop" } },
+  { a: "Sam Rivera", d: "Product analytics", t: `Last week I was laid off after six years at Fabrikam, together with 40 colleagues.
+
+I'm proud of what we built: the pricing analytics platform, the experimentation tooling, and a team I'd work with again tomorrow.
+
+I'm open to work and looking for roles in product analytics or data science, remote or in Berlin. If you hear of anything, I'd be grateful for an intro.` },
+  { a: "Victoria Lane", d: "Top Voice | 3x Founder | Forbes 30 Under 30", t: `I'm humbled and honored to be named one of LinkedIn's Top 50 Voices in AI this year. 🏆
+
+When I posted for the first time three years ago, I had 212 followers. Today, 148,000 of you read what I write. I never take that for granted.
+
+This recognition isn't mine. It's ours. Every comment, every repost, every DM.
+
+I'm incredibly grateful. And I'm just getting started.
+
+What's one person who changed your career? Tell me in the comments 👇` },
+  { a: "GrowthStack", d: "Promoted", promoted: true, t: `Stop wasting hours on reports. GrowthStack builds your dashboards automatically with AI. Teams save 12 hours a week on average. Start your free 14-day trial today and get 20% off your first year with code FEED20.` },
+  { a: "Marco Bellini", d: "AI Strategist | Prompt Engineer", t: `ChatGPT just changed EVERYTHING. 🤯
+
+If you're not using these 7 AI tools, you're falling behind:
+
+1. 🤖 Tool one for emails
+2. 🚀 Tool two for slides
+3. ✅ Tool three for research
+4. 💡 Tool four for notes
+5. 🔥 Tool five for video
+6. 📌 Tool six for SEO
+7. ⚡️ Tool seven for everything else
+
+AI won't replace you. A person using AI will.
+
+Comment "AI" below and I'll DM you my free prompt guide. Follow me for more.` },
+];
+const X = [
+  { a: "Priya N.", h: "@priya_builds", t: `We just open-sourced Tidewater, the record-linkage library we've used in production for two years. It matches 50M company records in under an hour on a laptop, with a benchmark against three commercial tools in the README. MIT licensed, contributions welcome.`, card: { href: "https://github.com/example/tidewater", title: "github.com/example/tidewater: fast, explainable record linkage" } },
+  { a: "Kai — building in public", h: "@kai_ships", t: `Unpopular opinion: remote work is dead. 🧵
+
+The founders who win in 2027 will be the ones in the office 7 days a week, grinding while everyone else is "finding balance".
+
+Nobody talks about this. Read that again.
+
+Agree? RT if you've got the guts to say it.` },
+  { a: "Dana Whitfield", h: "@danawhit", t: `Interesting result from our replication: of the 40 nudging studies we re-ran with pre-registered designs, 11 replicated with effect sizes above half the original. The median effect shrank by 70%. Full data and code are public, and we discuss which design features predicted replication.`, card: { href: "https://osf.io/abcd1/", title: "Replicating 40 digital nudging experiments (OSF)" } },
+];
+
+const li = document.getElementById("li");
+LI.forEach((p, i) => {
+  const el = document.createElement("div");
+  el.className = "feed-shared-update-v2";
+  el.setAttribute("data-urn", "urn:li:activity:" + (7000 + i));
+  el.innerHTML = `<div class="update-components-actor"><div class="avatar"></div><div><div class="update-components-actor__title"><span aria-hidden="true"></span></div><div class="update-components-actor__description"></div><div class="update-components-actor__sub-description"></div></div></div><div class="update-components-text"><span dir="ltr"></span></div><div class="social"><span>Like</span><span>Comment</span><span>Repost</span><span>Send</span></div>`;
+  el.querySelector("[aria-hidden]").textContent = p.a;
+  el.querySelector(".update-components-actor__description").textContent = p.promoted ? "" : p.d;
+  el.querySelector(".update-components-actor__sub-description").textContent = p.promoted ? "Promoted" : (i + 2) + "h • 🌐";
+  const span = el.querySelector("span[dir]");
+  span.textContent = p.t;
+  if (p.link) { const a = document.createElement("a"); a.href = p.link.href; a.textContent = p.link.text; span.appendChild(a); }
+  li.appendChild(el);
+});
+const xf = document.getElementById("xf");
+X.forEach((p) => {
+  const el = document.createElement("article");
+  el.setAttribute("data-testid", "tweet");
+  el.innerHTML = `<div class="av"></div><div class="body"><div data-testid="User-Name"></div><div><div data-testid="tweetText" dir="auto"></div></div><div class="icons"><span>💬 12</span><span>🔁 40</span><span>♥ 310</span></div></div>`;
+  el.querySelector("[data-testid=User-Name]").innerHTML = "";
+  el.querySelector("[data-testid=User-Name]").append(p.a + " ", Object.assign(document.createElement("span"), { textContent: p.h + " · 3h" }));
+  el.querySelector("[data-testid=tweetText]").textContent = p.t;
+  if (p.card) {
+    const c = document.createElement("div");
+    c.setAttribute("data-testid", "card.wrapper");
+    c.innerHTML = `<a><span></span></a>`;
+    c.querySelector("a").href = p.card.href;
+    c.querySelector("span").textContent = p.card.title;
+    el.querySelector(".body").insertBefore(c, el.querySelector(".icons"));
+  }
+  xf.appendChild(el);
+});
+</script>
+<script src="shim.js"></script>
+<script src="../src/defaults.js"></script>
+<script src="../src/content/classifier.js"></script>
+<script src="../src/content/sites.js"></script>
+<script src="../src/content/overlay.js"></script>
+<script src="../src/content/main.js"></script>
+</body>
+</html>
