@@ -28,16 +28,18 @@ shadow root so neither side's CSS leaks.
 
 ## Engines
 
-| Engine | Cost | Privacy | Notes |
-|---|---|---|---|
-| **Local** (default) | free | nothing leaves the browser | pattern-based, English and some German |
-| **Claude** (Anthropic API) | your key; about $0.008 per post on Opus 5.5, $0.0002 on Haiku 5.5 | post text goes to Anthropic | sharpest lines, any language |
-| **OpenRouter** | your key | post text goes to OpenRouter | any model id |
-| **Ollama** | free | stays on your computer | start with `OLLAMA_ORIGINS="chrome-extension://*,moz-extension://*" ollama serve` |
+Free by default, no keys, no hosting, nothing leaves the computer.
 
-AI calls are made only for posts near the viewport, at most three at a time, and cached (800 entries). The local
-verdict shows instantly and is replaced when the AI answers. URLs the model returns are kept only if they appear in the
-post. Keys are kept in the extension's local storage on this device and sent only to the chosen provider.
+| Engine | What writes the two lines | Where it works |
+|---|---|---|
+| **Automatic** (default) | Chrome's built-in on-device AI (Gemini Nano, Prompt API) when this computer has it; otherwise Unspin's rules | AI part: Chrome 138+ on a capable computer. Everywhere else: rules |
+| **Rules only** | Unspin's rules (genre phrases, templates per genre, most informative sentence) | every browser |
+| Advanced: Claude / OpenRouter / Ollama | your own provider and key; post text goes to that provider | every browser |
+
+In every engine the rules decide the genre, the signal score and the "worth your time" link; the on-device AI only
+writes the roast and the one-sentence gist, one post at a time, cached. If the model is missing, still downloading or
+fails, the card keeps the rules' lines. Chrome downloads the model once (a few GB); the settings page has a button for it.
+The model runs in the background worker when Chrome exposes it there, otherwise in a hidden offscreen page.
 
 ## Install (developer mode)
 

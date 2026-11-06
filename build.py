@@ -38,7 +38,8 @@ def main():
     zipdir(chrome, DIST / "unspin-chrome.zip")
 
     ff = json.loads(json.dumps(base))
-    ff["background"] = {"scripts": ["src/defaults.js", "src/background.js"]}
+    ff["background"] = {"scripts": ["src/defaults.js", "src/ai-chrome.js", "src/background.js"]}
+    ff["permissions"] = [p for p in ff["permissions"] if p != "offscreen"]  # Chrome-only
     ff["browser_specific_settings"] = {"gecko": {"id": "unspin@feed-decoder", "strict_min_version": "121.0"}}
     firefox = DIST / "firefox"
     copy(firefox)

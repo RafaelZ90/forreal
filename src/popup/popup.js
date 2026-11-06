@@ -5,7 +5,7 @@ const LABELS = {
   sales: "💸 Sales pitch", hype: "🤖 AI hype", listicle: "📋 Listicle", ad: "📣 Ad", hiring: "🧲 Hiring",
   personal: "🤍 Personal", paper: "📄 Research", event: "🎤 Event", release: "🛠️ Launch", insight: "💡 Insight", take: "🌶️ Hot take", plain: "💬 Plain post",
 };
-const ENGINES = { local: "Local decoder · nothing leaves your browser", anthropic: "✨ Claude (Anthropic API)", openrouter: "✨ OpenRouter", ollama: "✨ Ollama on this computer" };
+const ENGINES = { auto: "Rules + on-device AI · nothing leaves your computer", local: "Rules only · nothing leaves your browser", anthropic: "✨ Claude (Anthropic API)", openrouter: "✨ OpenRouter", ollama: "✨ Ollama on this computer" };
 const FEED_ORIGINS = ["https://www.linkedin.com/*", "https://x.com/*", "https://twitter.com/*", "https://bsky.app/*"];
 
 function seg(id, value, onPick) {

@@ -150,7 +150,7 @@
       for (let i = 0; i < 5; i++) meter.appendChild(el("i", i < on ? "on" : ""));
       top.append(chip, meter, el("span", "sig", String(v.signal)), el("span", "spacer"));
       const eng = el("span", "engine");
-      if (st.engineState === "ai") { eng.classList.add("ai"); eng.textContent = "✨ AI"; eng.title = "Decoded by " + v.engine; }
+      if (st.engineState === "ai") { eng.classList.add("ai"); eng.textContent = "✨ AI"; eng.title = v.engine === "chrome" ? "Lines written by Chrome's on-device AI; genre and score by Unspin's rules" : "Decoded by " + v.engine; }
       else if (st.engineState === "loading") { eng.textContent = "✨ …"; eng.title = "Asking the AI"; }
       else if (st.engineState === "error") { eng.classList.add("err"); eng.textContent = "local"; eng.title = "AI failed, showing the local decoder: " + (st.error || ""); }
       else { eng.textContent = "local"; eng.title = "Decoded on this device, no AI"; }

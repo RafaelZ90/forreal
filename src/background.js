@@ -1,11 +1,53 @@
 /*
  * Unspin – background worker.
- * Only used when the user picks an AI engine. Post text goes to the provider the user chose, nowhere else.
- * Keys live in chrome.storage.local (this device only) and are never logged.
+ * engine "auto" (default): rules + Chrome's on-device model where this computer has it; nothing leaves the computer.
+ * engine "local": rules only. Advanced engines (Claude, OpenRouter, Ollama) send post text to the provider the
+ * user chose, nowhere else. Keys live in chrome.storage.local (this device only) and are never logged.
  */
 const api = globalThis.browser || globalThis.chrome;
 
-if (!globalThis.UNSPIN_DEFAULTS && typeof importScripts === "function") importScripts("defaults.js");
+if (typeof importScripts === "function") {
+  if (!globalThis.UNSPIN_DEFAULTS) importScripts("defaults.js");
+  if (!globalThis.UnspinChromeAI) importScripts("ai-chrome.js");
+}
+
+// ---------- Chrome's on-device model ----------
+// Called directly when this context exposes LanguageModel, otherwise through a hidden offscreen page.
+let offscreenReady = null;
+async function viaOffscreen(msg) {
+  if (!api.offscreen) return { ok: false, error: "unavailable" };
+  if (!offscreenReady) {
+    offscreenReady = (async () => {
+      const has = api.offscreen.hasDocument ? await api.offscreen.hasDocument() : false;
+      if (!has) {
+        await api.offscreen.createDocument({
+          url: "src/offscreen/ai.html",
+          reasons: ["DOM_PARSER"],
+          justification: "Runs Chrome's built-in on-device language model, which is only exposed to window contexts.",
+        });
+      }
+    })().catch((e) => { offscreenReady = null; throw e; });
+  }
+  await offscreenReady;
+  return api.runtime.sendMessage(Object.assign({ target: "offscreen-ai" }, msg));
+}
+async function nanoStatus() {
+  if (globalThis.LanguageModel) return globalThis.UnspinChromeAI.status();
+  try { const r = await viaOffscreen({ op: "status" }); return r && r.ok ? r.r : "unavailable"; } catch (e) { return "unavailable"; }
+}
+async function nanoDecode(post, hint, spice) {
+  if (globalThis.LanguageModel) return globalThis.UnspinChromeAI.decode(post, hint, spice);
+  const r = await viaOffscreen({ op: "decode", post: { text: post.text }, hint, spice });
+  if (!r || !r.ok) throw new Error((r && r.error) || "On-device AI did not answer.");
+  return r.r;
+}
+let nanoChain = Promise.resolve(); // the on-device model takes one post at a time
+const nanoQueued = (fn) => { const p = nanoChain.then(fn, fn); nanoChain = p.catch(() => {}); return p; };
+let nanoKnown = { at: 0, status: "unavailable" };
+async function nanoAvailable() {
+  if (Date.now() - nanoKnown.at > 60000) nanoKnown = { at: Date.now(), status: await nanoStatus() };
+  return nanoKnown.status === "available";
+}
 
 const CATEGORIES = ["job", "brag", "bait", "lesson", "broetry", "sales", "hype", "listicle", "ad", "hiring", "personal", "paper", "event", "release", "insight", "take", "plain"];
 
@@ -179,6 +221,15 @@ function normalise(v, post) {
 
 async function analyze(post) {
   const cfg = await settings();
+  if (cfg.engine === "auto") {
+    if (!(await nanoAvailable())) return { skip: true };
+    const k = "chrome:" + cfg.spice + ":" + post.hash;
+    const cached = await cacheGet(k);
+    if (cached) return Object.assign({ engine: "chrome", cached: true }, cached);
+    const v = await nanoQueued(() => nanoDecode(post, post.hint, cfg.spice));
+    await cachePut(k, v);
+    return Object.assign({ engine: "chrome" }, v);
+  }
   if (cfg.engine === "local" || !PROVIDERS[cfg.engine]) return { skip: true };
   const key = cfg.engine + ":" + (cfg.models[cfg.engine] || "") + ":" + cfg.spice + ":" + post.hash;
   const hit = await cacheGet(key);
@@ -221,8 +272,14 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       text: "I'm thrilled and humbled to announce that I've started a new position as Senior Synergy Lead at Acme! Grateful for this journey. Agree?",
     };
     settings()
-      .then((cfg) => PROVIDERS[cfg.engine] ? PROVIDERS[cfg.engine](sample, cfg) : Promise.reject(new Error("Local engine needs no test.")))
+      .then((cfg) => cfg.engine === "auto"
+        ? nanoDecode(sample, { label: "New job" }, cfg.spice).then((v) => Object.assign({ signal: "rules" }, v))
+        : PROVIDERS[cfg.engine] ? PROVIDERS[cfg.engine](sample, cfg) : Promise.reject(new Error("Rules need no test.")))
       .then((v) => sendResponse({ ok: true, sample: v }), (e) => sendResponse({ ok: false, error: String(e.message || e) }));
+    return true;
+  }
+  if (msg.type === "aiStatus") {
+    nanoStatus().then((s) => { nanoKnown = { at: Date.now(), status: s }; sendResponse({ status: s }); });
     return true;
   }
   if (msg.type === "clearCache") {

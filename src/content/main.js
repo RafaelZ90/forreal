@@ -73,7 +73,7 @@
     const v = rec.ai ? Object.assign({}, rec.local, rec.ai, {
       label: (U.CATS[rec.ai.category] || {}).label || rec.local.label,
       emoji: (U.CATS[rec.ai.category] || {}).emoji || rec.local.emoji,
-      kind: !!(U.CATS[rec.ai.category] || {}).kind,
+      kind: rec.ai.category ? !!(U.CATS[rec.ai.category] || {}).kind : rec.local.kind,
       engine: rec.ai.engine,
     }) : rec.local;
     const collapsed = userToggled.has(rec.hash) ? userToggled.get(rec.hash) : shouldCollapse(v);
@@ -122,13 +122,13 @@
     if (cfg.engine === "local" || rec.asked) return;
     rec.asked = true;
     if (aiResults.has(rec.hash)) { rec.ai = aiResults.get(rec.hash); rec.engineState = "ai"; apply(rec); return; }
-    rec.engineState = "loading";
-    apply(rec);
+    if (cfg.engine !== "auto") { rec.engineState = "loading"; apply(rec); } // auto: show the rules' verdict until the AI answers
     const hash = rec.hash;
-    send({ type: "analyze", post: rec.payload }).then((r) => {
+    const post = Object.assign({}, rec.payload, { hint: { category: rec.local.category, label: rec.local.label } });
+    send({ type: "analyze", post }).then((r) => {
       if (rec.hash !== hash) return; // post was recycled meanwhile
       if (!r || r.skip) { rec.engineState = "local"; }
-      else if (r.error) { rec.engineState = "error"; rec.error = r.error; }
+      else if (r.error) { rec.engineState = cfg.engine === "auto" ? "local" : "error"; rec.error = r.error; }
       else { rec.ai = r; rec.engineState = "ai"; aiResults.set(hash, r); }
       apply(rec);
     });
@@ -150,7 +150,7 @@
     const local = U.classify(payload, { spice: cfg.spice });
     const card = U.createCard(site.id, post);
     textEl.parentNode.insertBefore(card.host, textEl);
-    const rec = { post, hash, payload, local, card, hide: siblingsToHide(site, textEl), engineState: cfg.engine === "local" ? "local" : "loading" };
+    const rec = { post, hash, payload, local, card, hide: siblingsToHide(site, textEl), engineState: cfg.engine === "local" || cfg.engine === "auto" ? "local" : "loading" };
     records.set(post, rec);
     byCard.set(card.cardEl, rec);
     if (sizes) sizes.observe(card.cardEl);

@@ -26,6 +26,24 @@ function seg(id, value, onPick) {
 function showProvider(engine) {
   document.querySelectorAll(".provider").forEach((p) => p.classList.toggle("on", p.dataset.for === engine));
   $("test-row").style.display = engine === "local" ? "none" : "flex";
+  $("ai-status").style.display = engine === "auto" ? "flex" : "none";
+  if (ORIGINS[engine]) $("advanced").open = true;
+}
+
+const AI_TEXT = {
+  available: "✓ Chrome's on-device AI is ready. It writes the lines; nothing leaves this computer.",
+  downloadable: "Chrome can download its on-device AI for free. Until then Unspin uses its rules.",
+  downloading: "Chrome is downloading its on-device AI… Unspin uses its rules meanwhile.",
+  unavailable: "This browser or computer has no built-in AI, so Unspin uses its rules. That works fine.",
+};
+async function aiStatus() {
+  const r = await api.runtime.sendMessage({ type: "aiStatus" }).catch(() => ({ status: "unavailable" }));
+  const st = (r && r.status) || "unavailable";
+  $("ai-status-text").textContent = AI_TEXT[st] || AI_TEXT.unavailable;
+  $("ai-status").classList.toggle("ok", st === "available");
+  // The download needs a click on a page that can see the model (this one, in Chrome 138+).
+  $("ai-download").hidden = !(st === "downloadable" && globalThis.UnspinChromeAI && globalThis.LanguageModel);
+  return st;
 }
 
 async function init() {
@@ -83,12 +101,24 @@ async function init() {
     };
   });
 
+  aiStatus();
+  $("ai-download").onclick = async () => {
+    $("ai-download").disabled = true;
+    try {
+      await globalThis.UnspinChromeAI.download((p) => ($("ai-status-text").textContent = "Downloading Chrome's on-device AI… " + Math.round(p * 100) + "%"));
+    } catch (e) {
+      $("ai-status-text").textContent = "Download failed: " + (e.message || e);
+    }
+    $("ai-download").disabled = false;
+    aiStatus();
+  };
+
   $("test").onclick = async () => {
     const out = $("test-out");
     out.className = "hint";
     out.textContent = "Asking…";
     const r = await api.runtime.sendMessage({ type: "test" });
-    if (r && r.ok) { out.className = "hint ok"; out.textContent = "Works: “" + r.sample.roast + "” (signal " + r.sample.signal + ")"; }
+    if (r && r.ok) { out.className = "hint ok"; out.textContent = "Works: “" + r.sample.roast + "” " + (r.sample.gist || ""); }
     else { out.className = "hint bad"; out.textContent = (r && r.error) || "No answer."; }
   };
   $("clear").onclick = async () => { await api.runtime.sendMessage({ type: "clearCache" }); $("house-out").textContent = "Cache cleared."; };

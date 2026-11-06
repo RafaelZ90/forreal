@@ -16,13 +16,23 @@
 
     <section class="card">
       <h2>Decoder</h2>
-      <p class="hint">The local decoder runs in your browser and sends nothing anywhere. An AI engine writes sharper lines and understands any language; it sends the text of posts you scroll past to the provider you pick.</p>
+      <p class="hint">Everything here is free and stays on your computer. Unspin's rules decide the genre, the score and the link. Where Chrome has its built-in AI, that AI writes the two lines.</p>
       <div class="engines" id="engines">
-        <label class="engine-opt"><input type="radio" name="engine" value="local"><span><b>Local</b><small>Free, private, instant. Pattern-based.</small></span></label>
-        <label class="engine-opt"><input type="radio" name="engine" value="anthropic"><span><b>Claude</b><small>Anthropic API, your own key.</small></span></label>
-        <label class="engine-opt"><input type="radio" name="engine" value="openrouter"><span><b>OpenRouter</b><small>Any model, your own key.</small></span></label>
-        <label class="engine-opt"><input type="radio" name="engine" value="ollama"><span><b>Ollama</b><small>Local model on this computer.</small></span></label>
+        <label class="engine-opt"><input type="radio" name="engine" value="auto"><span><b>Automatic</b><small>Rules, plus Chrome's on-device AI when this computer has it.</small></span></label>
+        <label class="engine-opt"><input type="radio" name="engine" value="local"><span><b>Rules only</b><small>Instant, works in every browser.</small></span></label>
       </div>
+      <div class="ai-status" id="ai-status">
+        <span id="ai-status-text">Checking Chrome's built-in AI…</span>
+        <button class="secondary" id="ai-download" hidden>Download it (one time, a few GB)</button>
+      </div>
+      <details class="advanced" id="advanced">
+        <summary>Advanced: use your own AI provider</summary>
+        <p class="hint">Sharper lines in any language, but the text of posts you scroll past goes to the provider, and you pay for it.</p>
+        <div class="engines">
+          <label class="engine-opt"><input type="radio" name="engine" value="anthropic"><span><b>Claude</b><small>Anthropic API, your own key.</small></span></label>
+          <label class="engine-opt"><input type="radio" name="engine" value="openrouter"><span><b>OpenRouter</b><small>Any model, your own key.</small></span></label>
+          <label class="engine-opt"><input type="radio" name="engine" value="ollama"><span><b>Ollama</b><small>Local model you run yourself.</small></span></label>
+        </div>
 
       <div class="provider" data-for="anthropic">
         <label>API key <input type="password" id="anthropicKey" autocomplete="off" placeholder="sk-ant-…"></label>
@@ -48,6 +58,7 @@
         <span id="test-out" class="hint"></span>
       </div>
       <p class="hint small">Keys are stored only on this device (browser extension storage) and sent only to the provider you chose.</p>
+      </details>
     </section>
 
     <section class="card">
@@ -96,6 +107,7 @@
     <p class="saved" id="saved">Saved</p>
   </main>
   <script src="../defaults.js"></script>
+  <script src="../ai-chrome.js"></script>
   <script src="options.js"></script>
 </body>
 </html>

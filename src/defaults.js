@@ -1,7 +1,7 @@
 /* Shared defaults for every part of Unspin (content, popup, options, background). */
 globalThis.UNSPIN_DEFAULTS = {
   enabled: true,
-  engine: "local", // local | anthropic | openrouter | ollama
+  engine: "auto", // auto = rules + Chrome on-device AI if present | local = rules only | anthropic | openrouter | ollama
   spice: "snarky", // mild | snarky | savage
   collapse: "all", // all = blur every decoded post | fluff = only low-signal ones | never
   threshold: 45, // posts below this signal get collapsed / dimmed
