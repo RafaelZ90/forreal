@@ -1,5 +1,5 @@
 """Build store-ready packages: dist/unspin-chrome.zip (Chrome, Edge, Brave, Opera) and dist/unspin-firefox.zip.
-Unpacked folders land in dist/chrome and dist/firefox (and ~/Desktop/Unspin is refreshed if it exists) for 'Load unpacked' / 'Load temporary add-on'.
+Unpacked folders land in dist/chrome and dist/firefox (and ~/Desktop/ForReal is refreshed if it exists) for 'Load unpacked' / 'Load temporary add-on'.
 Safari: xcrun safari-web-extension-converter dist/chrome
 """
 import json, pathlib, shutil, zipfile
@@ -48,7 +48,7 @@ def main():
     print("built", ", ".join(str(p.relative_to(ROOT)) for p in sorted(DIST.glob("*.zip"))))
 
     # Keep the copy that Chrome loads from the Desktop in step (only if it exists; never creates it).
-    desktop = pathlib.Path.home() / "Desktop" / "Unspin"
+    desktop = pathlib.Path.home() / "Desktop" / "ForReal"
     if (desktop / "manifest.json").exists():
         shutil.rmtree(desktop)
         shutil.copytree(chrome, desktop)

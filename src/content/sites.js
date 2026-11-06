@@ -21,6 +21,27 @@
   };
   const txt = (el) => (el ? (el.innerText || el.textContent || "").trim() : "");
 
+  // Text with line breaks taken from the markup (<br>, block elements), not from rendering, so it reads the
+  // same whether the post is visible or folded away. Buttons ("…more") are skipped.
+  const BLOCK = /^(P|DIV|LI|UL|OL|H[1-6]|BLOCKQUOTE|SECTION|ARTICLE)$/;
+  function readText(root) {
+    let out = "";
+    (function walk(node) {
+      for (let n = node.firstChild; n; n = n.nextSibling) {
+        if (n.nodeType === 3) out += n.data;
+        else if (n.nodeType === 1) {
+          if (n.tagName === "BR") { out += "\n"; continue; }
+          if (n.tagName === "BUTTON" || n.getAttribute("aria-hidden") === "true" || n.classList.contains("unspin-host")) continue;
+          const block = BLOCK.test(n.tagName);
+          if (block) out += "\n";
+          walk(n);
+          if (block) out += "\n";
+        }
+      }
+    })(root);
+    return out;
+  }
+
   // Fallback: the element inside the post with the most direct text.
   function largestTextBlock(post) {
     let best = null, bestLen = 0;
@@ -58,6 +79,8 @@
         "[data-view-name='feed-commentary']",
       ]) || largestTextBlock(post);
     },
+    // where the words are (the text element may also hold LinkedIn's "…more" button)
+    source: (post) => post.querySelector("[data-testid='expandable-text-box']"),
     author(post) {
       // 2026 markup: the author link carries the connection degree ("Name • 2nd"); earlier links may be
       // "X likes this" context lines. Company posts have no degree, so fall back to the first named profile.
@@ -106,6 +129,8 @@
     host: /(^|\.)(x|twitter)\.com$/,
     posts: ["article[data-testid='tweet']"],
     text: (post) => post.querySelector("[data-testid='tweetText']"),
+    avatar: (post) => post.querySelector("[data-testid='Tweet-User-Avatar']"),
+    name: (post) => post.querySelector("[data-testid='User-Name']"),
     author: (post) => txt(post.querySelector("[data-testid='User-Name']")).split("\n")[0],
     promoted: (post) => /^(ad|promoted|anzeige)$/im.test(txt(post.querySelector("[data-testid='placementTracking']") || null)) ||
       Array.from(post.querySelectorAll("span")).some((s) => /^(Ad|Promoted)$/.test(txt(s))),
@@ -126,6 +151,13 @@
     host: /(^|\.)bsky\.app$/,
     posts: ["[data-testid^='feedItem-by-']", "[data-testid^='postThreadItem-by-']"],
     text: (post) => post.querySelector("[data-testid='postText']") || largestTextBlock(post),
+    // The separator line is drawn on the post's inner block: put the verdict inside it, below the line.
+    mount: (post) => Array.from(post.children).find((c) => !c.classList.contains("unspin-host")) || post,
+    avatar: (post) => post.querySelector("[data-testid='userAvatarImage']"),
+    name(post) {
+      const handle = (post.getAttribute("data-testid") || "").replace(/^(feedItem|postThreadItem)-by-/, "");
+      return Array.from(post.querySelectorAll("a[href='/profile/" + handle + "']")).find((a) => txt(a) && txt(a)[0] !== "@");
+    },
     author(post) {
       // data-testid="feedItem-by-<handle>"; the first link to that profile with visible text is the display name
       // (an earlier link may be "Reposted by …").
@@ -146,6 +178,7 @@
 
   root.Unspin = root.Unspin || {};
   root.Unspin.sites = ALL;
+  root.Unspin.readText = readText;
   root.Unspin.siteFor = function (hostname, demoSiteId) {
     if (demoSiteId) return ALL.find((s) => s.id === demoSiteId) || null;
     return ALL.find((s) => s.host.test(hostname)) || null;

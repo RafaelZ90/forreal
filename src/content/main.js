@@ -45,10 +45,13 @@
     if (v.signal < cfg.threshold) return "skip";
     return "maybe";
   }
-  function autoFold(tier) {
-    if (cfg.collapse === "never") return false;
-    if (tier === "skip") return true;
-    return cfg.collapse === "maybe" && tier === "maybe";
+  // Fold only what is certainly not worth it, so nobody misses a post they wanted: ads, engagement bait,
+  // or a very low signal. Other Skips keep their label but stay open. ("maybe" mode is the reader's explicit choice.)
+  function autoFold(v, tier) {
+    if (cfg.collapse === "never" || tier === "kind" || tier === "worth") return false;
+    if (cfg.collapse === "maybe") return true;
+    if (tier !== "skip" || (v.worth && v.worth.href)) return false;
+    return v.category === "ad" || v.category === "bait" || v.signal < 25;
   }
 
   function verdictOf(rec) {
@@ -65,8 +68,10 @@
   function apply(rec) {
     const v = verdictOf(rec);
     const tier = tierOf(v);
-    const folded = userFold.has(rec.hash) ? userFold.get(rec.hash) : autoFold(tier);
-    rec.post.toggleAttribute("data-unspin-fold", folded);
+    // The automatic fold is decided once per post and then kept: a re-read may update the line, never make it jump.
+    if (rec.autoFold === undefined) rec.autoFold = autoFold(v, tier);
+    const folded = userFold.has(rec.hash) ? userFold.get(rec.hash) : rec.autoFold;
+    rec.box.toggleAttribute("data-unspin-fold", folded);
     rec.strip.update(v, {
       tier, folded, canFold: tier !== "worth" && tier !== "kind",
       jokes: cfg.jokes !== false,
@@ -75,7 +80,8 @@
       onFold: () => { userFold.set(rec.hash, !folded); apply(rec); },
       onRelabel: (cat) => relabel(rec, v, cat),
     });
-    if (!counted.has(rec.hash)) {
+    if (!rec.counted && !counted.has(rec.hash)) {
+      rec.counted = true;
       counted.add(rec.hash);
       send({ type: "stats", data: { words: v.words, minutes: v.minutes, collapsed: folded, fluff: tier === "skip", worth: tier === "worth", category: v.category } });
     }
@@ -85,6 +91,7 @@
   async function relabel(rec, v, cat) {
     overrides.set(rec.hash, cat);
     userFold.delete(rec.hash);
+    rec.autoFold = undefined; // a corrected label may fold or unfold once
     apply(rec);
     try {
       const got = await api.storage.local.get(["overrides", "corrections"]);
@@ -134,38 +141,67 @@
 
   function remove(rec) {
     rec.strip.host.remove();
-    rec.post.removeAttribute("data-unspin-fold");
+    rec.box.removeAttribute("data-unspin-fold");
     io.unobserve(rec.post);
     records.delete(rec.post);
+  }
+
+  const mountOf = (site, post) => (site.mount && site.mount(post)) || post;
+
+  // X/Bluesky: line the verdict up with the avatar and name columns (measured before any folding).
+  function alignTo(site, post, strip) {
+    if (!site.avatar || !site.name) return;
+    const a = site.avatar(post), n = site.name(post);
+    if (!a || !n) return;
+    const h = strip.host.getBoundingClientRect(), ar = a.getBoundingClientRect(), nr = n.getBoundingClientRect();
+    if (!h.width || !ar.width || !nr.width) return;
+    strip.align(ar.left - h.left, ar.width, nr.left - ar.right);
   }
 
   function processPost(site, post) {
     const textEl = site.text(post);
     if (!textEl) return;
-    const raw = textEl.textContent || ""; // cheap check first; innerText only when something changed
+    const src = (site.source && site.source(post)) || textEl; // the words only, without "…more" buttons
+    const raw = src.textContent || "";
     const old = records.get(post);
     if (old && old.raw === raw && old.strip.host.isConnected) return;
-    const text = U.cleanText(textEl.innerText || raw);
+    const text = U.cleanText(U.readText(src)); // same result whether the post is shown or folded
     const hash = U.hash(text);
     if (old && old.hash === hash && old.strip.host.isConnected) { old.raw = raw; return; }
-    // LinkedIn's "…more" changes the text (and hash): keep the reader's choices.
-    if (old && userFold.has(old.hash) && !userFold.has(hash)) userFold.set(hash, userFold.get(old.hash));
-    if (old && overrides.has(old.hash) && !overrides.has(hash)) overrides.set(hash, overrides.get(old.hash));
-    if (old) remove(old);
     const words = text ? text.split(/\s+/).length : 0;
+
+    if (old) {
+      // Same post, changed text (LinkedIn's "…more", lazy loading): update in place, keep the reader's choices
+      // and the fold, and put the line back if the site removed it.
+      if (userFold.has(old.hash) && !userFold.has(hash)) userFold.set(hash, userFold.get(old.hash));
+      if (overrides.has(old.hash) && !overrides.has(hash)) overrides.set(hash, overrides.get(old.hash));
+      if (words >= cfg.minWords) {
+        old.raw = raw; old.hash = hash;
+        old.payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted: site.promoted(post), hash };
+        old.local = U.classify(old.payload, { spice: cfg.spice });
+        old.ai = aiResults.get(hash) || null;
+        if (!old.strip.host.isConnected) { old.box = mountOf(site, post); old.box.insertBefore(old.strip.host, old.box.firstChild); }
+        apply(old);
+        return;
+      }
+      remove(old);
+    }
     if (words < cfg.minWords) return;
 
     const payload = { site: site.id, text, author: site.author(post), links: site.links(post, textEl), promoted: site.promoted(post), hash };
     const local = U.classify(payload, { spice: cfg.spice });
     const strip = U.createStrip(site.id, post);
-    // The strip is the post's first child. In a side-by-side (row) flex layout it gets its own full-width row.
-    const cs = getComputedStyle(post);
+    // The strip is the first child of the post (or of the block the site says, see site.mount).
+    // In a side-by-side (row) flex layout it gets its own full-width row.
+    const box = mountOf(site, post);
+    const cs = getComputedStyle(box);
     if (/flex/.test(cs.display) && !/column/.test(cs.flexDirection)) {
-      post.style.flexWrap = "wrap";
+      box.style.flexWrap = "wrap";
       strip.host.style.cssText = "display:block;flex:0 0 100%;width:100%";
     }
-    post.insertBefore(strip.host, post.firstChild);
-    const rec = { post, raw, hash, payload, local, strip, engineState: "local" };
+    box.insertBefore(strip.host, box.firstChild);
+    alignTo(site, post, strip);
+    const rec = { post, box, raw, hash, payload, local, strip, engineState: "local" };
     records.set(post, rec);
     apply(rec);
     if (cfg.engine !== "local") io.observe(post);

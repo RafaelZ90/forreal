@@ -57,6 +57,23 @@
   :host([data-theme^="x"]) { --radius: 10px; --pad: 6px 10px; --margin: 6px 12px 2px; --details-margin: 4px 16px 0; }
   :host([data-theme^="bsky"]) { --radius: 8px; --pad: 6px 10px; --margin: 6px 12px 2px; --details-margin: 4px 16px 0; }
   :host([data-folded]) .strip { margin-bottom: 8px; }
+  .icon { flex: none; }
+  /* X and Bluesky: look like the site's own context line ("You reposted"): no box, icon in the avatar column,
+     text starting at the name column (offsets measured from the post, see align()). */
+  :host([data-theme^="x"]) .strip, :host([data-theme^="bsky"]) .strip {
+    background: transparent; border-radius: 0; margin: 0; padding: 10px 0 0 var(--lead, 0); gap: 6px; color: var(--muted);
+  }
+  :host([data-theme^="x"]) .strip:hover, :host([data-theme^="bsky"]) .strip:hover { background: transparent; }
+  :host([data-theme^="x"]) .strip:hover .line, :host([data-theme^="bsky"]) .strip:hover .line { text-decoration: underline; }
+  :host([data-theme^="x"]) .icon, :host([data-theme^="bsky"]) .icon { width: var(--icon-w, auto); text-align: right; margin-right: calc(var(--gap, 6px) - 6px); }
+  :host([data-theme^="x"]) .tier, :host([data-theme^="bsky"]) .tier { font-weight: 700; }
+  :host([data-theme^="x"]) .cat, :host([data-theme^="bsky"]) .cat { font-weight: 400; }
+  :host([data-theme^="x"]) .line, :host([data-theme^="bsky"]) .line { color: var(--muted); }
+  :host([data-theme^="x"]) .link, :host([data-theme^="bsky"]) .link { border: 0; padding: 0; }
+  :host([data-theme^="x"]) .link:hover, :host([data-theme^="bsky"]) .link:hover { background: transparent; text-decoration: underline; }
+  :host([data-theme^="x"]) .btn, :host([data-theme^="bsky"]) .btn { color: var(--muted); font-weight: 400; }
+  :host([data-theme^="x"]) .details, :host([data-theme^="bsky"]) .details { margin: 4px 0 0 calc(var(--lead, 0px) + var(--icon-w, 0px) + var(--gap, 8px)); padding: 4px 0 2px 10px; }
+  :host([data-theme^="x"][data-folded]) .strip, :host([data-theme^="bsky"][data-folded]) .strip { padding-bottom: 10px; }
   :host([data-theme="linkedin-light"]) { --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; --bg: #fff; --fg: rgba(0,0,0,.9); --muted: rgba(0,0,0,.6); --line: rgba(140,140,140,.35); --link: #0a66c2; --worth: #057642; --maybe: #9a6b00; --skip: #b3261e; }
   :host([data-theme="linkedin-dark"]) { --font: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif; --bg: #1b1f23; --fg: rgba(255,255,255,.9); --muted: rgba(255,255,255,.6); --line: rgba(255,255,255,.2); --link: #71b7fb; --worth: #5ec27a; --maybe: #e8b339; --skip: #f07167; }
   :host([data-theme="x-light"]) { --font: TwitterChirp, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; --bg: #fff; --fg: #0f1419; --muted: #536471; --line: #cfd9de; --link: #1d9bf0; --worth: #00875a; --maybe: #9a6b00; --skip: #c62828; }
@@ -126,7 +143,8 @@
       strip.textContent = "";
       strip.classList.toggle("open", open);
       strip.title = "ForReal · signal " + v.signal + "/100 · click for details";
-      strip.appendChild(el("span", "tier", T.icon + " " + T.label));
+      strip.appendChild(el("span", "icon", T.icon));
+      strip.appendChild(el("span", "tier", T.label));
       if (st.tier !== "kind") strip.append(el("span", "cat", v.label), el("span", "sep", "·"));
 
       // The one line: worth-it posts say what is worth it; the rest get the joke (or the gist).
@@ -182,7 +200,13 @@
     strip.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
     // Clicks inside must not open the post (LinkedIn/X make whole posts clickable).
     host.addEventListener("click", (e) => e.stopPropagation());
-    return { host, update, retheme: () => host.setAttribute("data-theme", themeFor(siteId, post)) };
+    // Line up with the post's own columns: lead = avatar's left edge, icon-w = avatar width, gap = avatar to name.
+    function align(lead, iconW, gap) {
+      host.style.setProperty("--lead", Math.max(0, Math.round(lead)) + "px");
+      host.style.setProperty("--icon-w", Math.round(iconW) + "px");
+      host.style.setProperty("--gap", Math.max(4, Math.round(gap)) + "px");
+    }
+    return { host, update, align, retheme: () => host.setAttribute("data-theme", themeFor(siteId, post)) };
   }
 
   root.Unspin = root.Unspin || {};
