@@ -1,58 +1,77 @@
 [
-{
-"note": "someone else's promotion is not a job post",
-"text": "Big shoutout to my former colleague Dana. She is one of the most driven people I know.\n\n- At Northwind she went from analyst to COO\n- When she got promoted to VP she took equity instead of salary\n- She lived next to the office for two years\n- Investors tried to replace her and failed\n- Her shares are now worth millions\n- She has put everything into her next company",
-"links": [],
-"expect_not": [
-"job"
-]
-},
-{
-"note": "a past workshop is a report, not an event",
-"text": "Sorting piles of notes from a 2-day internal workshop with partner judges last weekend. We discussed how courts apply new guidelines in practice, and what changed since the reform. The workshop was a great reminder of how much happens behind the scenes, and how differently the same rule reads in different places.",
-"links": [],
-"expect_not": [
-"event"
-]
-},
-{
-"note": "LinkedIn redirect links are unwrapped",
-"text": "Our special issue on entrepreneurial myths is out. We collected twelve papers that test popular claims with data, and the editorial explains which claims hold up and which do not. All articles are open access in the journal for the next three months.",
-"links": [
-{
-"href": "https://www.linkedin.com/redir/redirect?url=https%3A%2F%2Fdoi.org%2F10.1016%2Fj.jbvi.2026.e00400",
-"text": "doi.org/10.1016/j.jbvi.2026.e00400"
-}
-],
-"expect": "paper",
-"expect_host": "doi.org"
-},
-{
-"note": "first-person promotion is a job post",
-"text": "Some personal news: I've been promoted to Head of Data at Contoso! Grateful to my team and my manager for the trust over the last four years. Excited for the next chapter and for everything we will build together in 2027.",
-"links": [],
-"expect": "job"
-},
-{
-"note": "curly apostrophe: We’re hiring",
-"text": "We’re hiring a VP of Finance & Capital Markets at Northwind. We’re the leading trade finance platform for exporters, profitable since 2025, with $2.5B+ financed and backed by top VCs and banks. This is a chance to lead the capital markets strategy and build the team.",
-"links": [],
-"expect": "hiring"
-},
-{
-"note": "dash bullets with analysis are not a listicle",
-"text": "Funny how everyone is blaming yesterday's sell-off on the election results, when the signs have been there for months. The AI trade was already stretched:\n- Worries about circular funding between AI labs, chipmakers and cloud providers\n- Hyperscalers moving from cash-funded to debt-funded capex\n- Valuations pricing in growth that requires near-perfect execution\n- Retail positioning at record highs according to the latest flow data",
-"links": [],
-"expect_not": [
-"listicle"
-]
-},
-{
-"note": "AI words with data are not hype",
-"text": "Out of 16 copycat apps only 3 have more than 10 reviews, compared to 23,000 for the original app. None of the copycats will be updated in a few weeks. There are Claude and Codex skills that reverse engineer any app by interacting with every screen, but distribution and maintenance are still the moat.",
-"links": [],
-"expect_not": [
-"hype"
-]
-}
+ {
+  "note": "someone else's promotion is not a job post",
+  "text": "Big shoutout to my former colleague Dana. She is one of the most driven people I know.\n\n- At Northwind she went from analyst to COO\n- When she got promoted to VP she took equity instead of salary\n- She lived next to the office for two years\n- Investors tried to replace her and failed\n- Her shares are now worth millions\n- She has put everything into her next company",
+  "links": [],
+  "expect_not": [
+   "job"
+  ]
+ },
+ {
+  "note": "a past workshop is a report, not an event",
+  "text": "Sorting piles of notes from a 2-day internal workshop with partner judges last weekend. We discussed how courts apply new guidelines in practice, and what changed since the reform. The workshop was a great reminder of how much happens behind the scenes, and how differently the same rule reads in different places.",
+  "links": [],
+  "expect_not": [
+   "event"
+  ]
+ },
+ {
+  "note": "LinkedIn redirect links are unwrapped",
+  "text": "Our special issue on entrepreneurial myths is out. We collected twelve papers that test popular claims with data, and the editorial explains which claims hold up and which do not. All articles are open access in the journal for the next three months.",
+  "links": [
+   {
+    "href": "https://www.linkedin.com/redir/redirect?url=https%3A%2F%2Fdoi.org%2F10.1016%2Fj.jbvi.2026.e00400",
+    "text": "doi.org/10.1016/j.jbvi.2026.e00400"
+   }
+  ],
+  "expect": "paper",
+  "expect_host": "doi.org"
+ },
+ {
+  "note": "first-person promotion is a job post",
+  "text": "Some personal news: I've been promoted to Head of Data at Contoso! Grateful to my team and my manager for the trust over the last four years. Excited for the next chapter and for everything we will build together in 2027.",
+  "links": [],
+  "expect": "job"
+ },
+ {
+  "note": "curly apostrophe: We’re hiring",
+  "text": "We’re hiring a VP of Finance & Capital Markets at Northwind. We’re the leading trade finance platform for exporters, profitable since 2025, with $2.5B+ financed and backed by top VCs and banks. This is a chance to lead the capital markets strategy and build the team.",
+  "links": [],
+  "expect": "hiring"
+ },
+ {
+  "note": "dash bullets with analysis are not a listicle",
+  "text": "Funny how everyone is blaming yesterday's sell-off on the election results, when the signs have been there for months. The AI trade was already stretched:\n- Worries about circular funding between AI labs, chipmakers and cloud providers\n- Hyperscalers moving from cash-funded to debt-funded capex\n- Valuations pricing in growth that requires near-perfect execution\n- Retail positioning at record highs according to the latest flow data",
+  "links": [],
+  "expect_not": [
+   "listicle"
+  ]
+ },
+ {
+  "note": "AI words with data are not hype",
+  "text": "Out of 16 copycat apps only 3 have more than 10 reviews, compared to 23,000 for the original app. None of the copycats will be updated in a few weeks. There are Claude and Codex skills that reverse engineer any app by interacting with every screen, but distribution and maintenance are still the moat.",
+  "links": [],
+  "expect_not": [
+   "hype"
+  ]
+ },
+ {
+  "note": "a javascript: URL hidden in a LinkedIn redirect never becomes the link",
+  "text": "Our new paper on platform governance is out today, with data from twelve countries and a replication package. Read it here.",
+  "links": [
+   {
+    "href": "https://www.linkedin.com/redir/redirect?url=%20javascript:alert(document.domain)//doi.org",
+    "text": "doi.org/10.1/xyz"
+   },
+   {
+    "href": "https://www.linkedin.com/redir/redirect?url=java%09script:alert(1)//arxiv.org",
+    "text": "arxiv"
+   },
+   {
+    "href": "data:text/html,<script>alert(1)</script>//doi.org",
+    "text": "doi"
+   }
+  ],
+  "expect_no_link": true
+ }
 ]

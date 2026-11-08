@@ -6,6 +6,12 @@
  */
 const api = globalThis.browser || globalThis.chrome;
 
+// API keys live in storage.local: keep it to the extension's own pages (Chrome 102+; content scripts on the feed
+// sites cannot read it, they ask this worker instead). Firefox has no such switch: there content scripts could read it.
+try {
+  if (api.storage.local.setAccessLevel) api.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" }).catch(() => {});
+} catch (e) { /* older browser */ }
+
 if (typeof importScripts === "function") {
   if (!globalThis.UNSPIN_DEFAULTS) importScripts("defaults.js");
   if (!globalThis.UnspinChromeAI) importScripts("ai-chrome.js");
@@ -89,7 +95,8 @@ function systemPrompt(spice) {
 
 function userPrompt(p) {
   const links = (p.links || []).slice(0, 8).map((l) => "- " + (l.title || l.text || "").slice(0, 100) + " <" + l.href + ">").join("\n");
-  return "<post site=\"" + p.site + "\" author=\"" + (p.author || "").replace(/"/g, "'") + "\">\n" + p.text.slice(0, 6000) + "\n</post>\n<links>\n" + (links || "(none)") + "\n</links>";
+  const esc = (s) => String(s || "").replace(/</g, "‹").replace(/>/g, "›"); // the post cannot close its own tag
+  return "<post site=\"" + esc(p.site) + "\" author=\"" + esc(p.author).replace(/"/g, "'") + "\">\n" + esc(p.text.slice(0, 6000)) + "\n</post>\n<links>\n" + esc(links || "(none)") + "\n</links>";
 }
 
 const settings = () => globalThis.unspinSettings();
@@ -113,7 +120,7 @@ async function callAnthropic(post, cfg) {
     },
     body: JSON.stringify({
       model: cfg.models.anthropic,
-      max_tokens: 2048,
+      max_tokens: 400,
       system: systemPrompt(cfg.spice),
       messages: [{ role: "user", content: userPrompt(post) }],
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
@@ -134,7 +141,7 @@ async function callOpenRouter(post, cfg) {
     headers: { "content-type": "application/json", authorization: "Bearer " + key, "X-Title": "ForReal" },
     body: JSON.stringify({
       model: cfg.models.openrouter,
-      max_tokens: 2048,
+      max_tokens: 400,
       messages: [{ role: "system", content: systemPrompt(cfg.spice) }, { role: "user", content: userPrompt(post) }],
       response_format: { type: "json_schema", json_schema: { name: "verdict", strict: true, schema: SCHEMA } },
     }),
@@ -146,7 +153,12 @@ async function callOpenRouter(post, cfg) {
 }
 
 async function callOllama(post, cfg) {
-  const res = await fetch(cfg.ollamaUrl.replace(/\/$/, "") + "/api/chat", {
+  let base;
+  try { base = new URL(cfg.ollamaUrl); } catch (e) { throw new Error("Ollama server address is not a URL."); }
+  if (base.protocol !== "http:" || !["localhost", "127.0.0.1", "[::1]"].includes(base.hostname)) {
+    throw new Error("Ollama must run on this computer (http://localhost:…): post text is not sent elsewhere unencrypted.");
+  }
+  const res = await fetch(base.origin + "/api/chat", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -194,7 +206,13 @@ async function cacheGet(k) {
   if (hit) memo.set(k, hit);
   return hit || null;
 }
-async function cachePut(k, v) {
+// One writer at a time for read-modify-write records (cache, corrections), so parallel answers do not drop entries.
+let writeChain = Promise.resolve();
+const serial = (fn) => { const p = writeChain.then(fn, fn); writeChain = p.catch(() => {}); return p; };
+
+const cachePut = (k, v) => serial(() => cachePutNow(k, v));
+async function cachePutNow(k, v) {
+  if (memo.size > 2000) memo.clear();
   memo.set(k, v);
   const r = await api.storage.local.get("cache");
   const cache = r.cache || {};
@@ -207,7 +225,8 @@ async function cachePut(k, v) {
 function normalise(v, post) {
   const urls = new Set((post.links || []).map((l) => l.href));
   const cat = CATEGORIES.includes(v.category) ? v.category : "take";
-  const worthUrl = v.worth_url && urls.has(v.worth_url) ? v.worth_url : "";
+  const web = (u) => { try { const p = new URL(u).protocol; return p === "https:" || p === "http:"; } catch (e) { return false; } };
+  const worthUrl = v.worth_url && urls.has(v.worth_url) && web(v.worth_url) ? v.worth_url : "";
   const substantive = ["paper", "event", "release", "insight", "hiring"].includes(cat);
   if (!worthUrl && !substantive) v.worth_title = "";
   return {
@@ -234,11 +253,40 @@ async function analyze(post) {
   const key = cfg.engine + ":" + (cfg.models[cfg.engine] || "") + ":" + cfg.spice + ":" + post.hash;
   const hit = await cacheGet(key);
   if (hit) return Object.assign({ engine: cfg.engine, cached: true }, hit);
+  if (!(await spendOne(cfg))) return { skip: true, error: "Daily limit of " + cfg.aiDailyLimit + " AI calls reached (Settings)." };
   const raw = await runQueued(() => PROVIDERS[cfg.engine](post, cfg));
   const v = normalise(raw, post);
   await cachePut(key, v);
   return Object.assign({ engine: cfg.engine }, v);
 }
+
+// Paid engines: at most cfg.aiDailyLimit calls a day, so endless scrolling cannot run up the bill.
+const spendOne = (cfg) => serial(async () => {
+  const day = new Date().toISOString().slice(0, 10);
+  const r = await api.storage.local.get("aiCalls");
+  const c = r.aiCalls && r.aiCalls.day === day ? r.aiCalls : { day, n: 0 };
+  if (c.n >= (cfg.aiDailyLimit || 0)) return false;
+  c.n += 1;
+  await api.storage.local.set({ aiCalls: c });
+  return true;
+});
+
+// The reader's corrections: an override per post, plus the example for tuning the rules (other people's text,
+// kept on this device only, at most 300, dropped after 30 days).
+const CORRECTION_DAYS = 30;
+const saveCorrection = (hash, c) => serial(async () => {
+  const got = await api.storage.local.get(["overrides", "corrections"]);
+  const ov = got.overrides || {};
+  ov[hash] = c.to;
+  const keys = Object.keys(ov);
+  if (keys.length > 2000) keys.slice(0, keys.length - 2000).forEach((k) => delete ov[k]);
+  const since = Date.now() - CORRECTION_DAYS * 864e5;
+  const corr = (got.corrections || []).filter((x) => Date.parse(x.at) > since).concat([{
+    at: new Date().toISOString(), site: String(c.site || ""), from: String(c.from || ""), to: String(c.to || ""),
+    text: String(c.text || "").slice(0, 1200), links: (c.links || []).slice(0, 3).map(String),
+  }]).slice(-300);
+  await api.storage.local.set({ overrides: ov, corrections: corr });
+});
 
 // ---------- stats ----------
 async function addStats(d) {
@@ -257,7 +305,18 @@ async function addStats(d) {
 }
 
 api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || !msg.type) return false;
+  if (!msg || !msg.type || !sender || sender.id !== api.runtime.id) return false;
+  const fromPage = !sender.tab; // the extension's own pages (popup, settings), not a content script on a feed site
+  if (msg.type === "overrides") {
+    api.storage.local.get("overrides").then((r) => sendResponse({ overrides: r.overrides || {} }), () => sendResponse({ overrides: {} }));
+    return true;
+  }
+  if (msg.type === "correction") {
+    if (!msg.correction || !CATEGORIES.includes(msg.correction.to) || typeof msg.hash !== "string") return false;
+    saveCorrection(msg.hash.slice(0, 32), msg.correction).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
+    return true;
+  }
+  if ((msg.type === "test" || msg.type === "clearCache") && !fromPage) return false;
   if (msg.type === "analyze") {
     analyze(msg.post).then(sendResponse, (e) => sendResponse({ error: String(e.message || e) }));
     return true;

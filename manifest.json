@@ -2,17 +2,33 @@
   "manifest_version": 3,
   "name": "ForReal – is this post worth your time?",
   "short_name": "ForReal",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "One honest line on every LinkedIn, X and Bluesky post: worth it, maybe or skip. Skipped posts fold away; the real stuff gets a link.",
-  "icons": { "16": "icons/icon16.png", "32": "icons/icon32.png", "48": "icons/icon48.png", "128": "icons/icon128.png" },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "action": {
     "default_title": "ForReal",
     "default_popup": "src/popup/popup.html",
-    "default_icon": { "16": "icons/icon16.png", "32": "icons/icon32.png" }
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
   },
-  "options_ui": { "page": "src/options/options.html", "open_in_tab": true },
-  "background": { "service_worker": "src/background.js" },
-  "permissions": ["storage", "offscreen"],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "permissions": [
+    "storage",
+    "offscreen"
+  ],
   "host_permissions": [
     "https://www.linkedin.com/*",
     "https://x.com/*",
@@ -27,8 +43,19 @@
   ],
   "content_scripts": [
     {
-      "matches": ["https://www.linkedin.com/*", "https://x.com/*", "https://twitter.com/*", "https://bsky.app/*"],
-      "js": ["src/defaults.js", "src/content/classifier.js", "src/content/sites.js", "src/content/overlay.js", "src/content/main.js"],
+      "matches": [
+        "https://www.linkedin.com/*",
+        "https://x.com/*",
+        "https://twitter.com/*",
+        "https://bsky.app/*"
+      ],
+      "js": [
+        "src/defaults.js",
+        "src/content/classifier.js",
+        "src/content/sites.js",
+        "src/content/overlay.js",
+        "src/content/main.js"
+      ],
       "run_at": "document_idle"
     }
   ]

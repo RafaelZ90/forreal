@@ -65,9 +65,9 @@
           <label>API key <input type="password" id="anthropicKey" autocomplete="off" placeholder="sk-ant-…"></label>
           <label>Model
             <select id="model-anthropic">
-              <option value="claude-opus-5-5">Claude Opus 5.5 (sharpest lines, about $0.008 per post)</option>
-              <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (about $0.004 per post)</option>
               <option value="claude-haiku-5-5">Claude Haiku 5.5 (cheapest, about $0.0002 per post)</option>
+              <option value="claude-sonnet-5-5">Claude Sonnet 5.5 (about $0.004 per post)</option>
+              <option value="claude-opus-5-5">Claude Opus 5.5 (sharpest lines, about $0.008 per post)</option>
             </select>
           </label>
         </div>
@@ -78,9 +78,12 @@
         <div class="provider" data-for="ollama">
           <label>Server <input type="text" id="ollamaUrl" placeholder="http://localhost:11434"></label>
           <label>Model <input type="text" id="model-ollama" placeholder="qwen3:8b"></label>
-          <p class="hint">Start Ollama with <code>OLLAMA_ORIGINS="chrome-extension://*,moz-extension://*" ollama serve</code>.</p>
+          <p class="hint">Start Ollama with <code>OLLAMA_ORIGINS="<span id="own-origin">chrome-extension://&lt;this extension's id&gt;</span>" ollama serve</code> (only this extension, not every extension, may then use your Ollama).</p>
         </div>
-        <p class="hint small">Keys are stored only on this device and sent only to the provider you chose.</p>
+        <label class="range">At most <b id="lim-val">300</b> AI calls a day (then the rules take over until tomorrow)
+          <input type="range" id="aiDailyLimit" min="50" max="2000" step="50">
+        </label>
+        <p class="hint small">Keys are stored only on this device, in storage the feed sites' pages cannot read (Chrome), and sent only to the provider you chose. The AI may re-word and re-label a post, but a sponsored post stays an ad and the link always comes from the rules.</p>
       </details>
       <div class="row" id="test-row">
         <button class="secondary" id="test">Test with a sample post</button>
@@ -90,7 +93,7 @@
 
     <section class="card">
       <h2>Your corrections</h2>
-      <p class="hint">When a label is wrong, click a post's verdict line and pick “Wrong label?”. ForReal remembers it for that post and keeps the example here, on your computer, so the rules can be improved.</p>
+      <p class="hint">When a label is wrong, click a post's verdict line and pick “Wrong label?”. ForReal remembers it for that post and keeps the example here, on your computer, for 30 days, so the rules can be improved. The examples contain the post's text, i.e. other people's words: share them only with someone you trust.</p>
       <div class="row">
         <span id="corr-count" class="hint">No corrections yet.</span>
         <button class="secondary" id="corr-copy" hidden>Copy them</button>

@@ -159,9 +159,10 @@
       else text = v.gist || v.roast;
       strip.appendChild(el("span", "line" + (joke ? " joke" : ""), text));
 
-      if (v.worth && v.worth.href) {
+      const href = v.worth && globalThis.Unspin.safeUrl(v.worth.href);
+      if (href) {
         const a = el("a", "link", "→ " + (v.worth.host || "open"));
-        a.href = v.worth.href; a.target = "_blank"; a.rel = "noopener noreferrer";
+        a.href = href; a.target = "_blank"; a.rel = "noopener noreferrer";
         a.title = v.worth.title || v.worth.href;
         strip.appendChild(a);
       }

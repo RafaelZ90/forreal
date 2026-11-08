@@ -58,11 +58,20 @@
   function verdictOf(rec) {
     let v = rec.local;
     if (overrides.has(rec.hash)) v = U.relabel(v, overrides.get(rec.hash), cfg.spice);
-    if (rec.ai) v = Object.assign({}, v, { roast: rec.ai.roast || v.roast, gist: rec.ai.gist || v.gist },
-      rec.ai.category && !overrides.has(rec.hash) && U.CATS[rec.ai.category] ? { // own-provider engines may re-label
-        category: rec.ai.category, label: U.CATS[rec.ai.category].label, kind: !!U.CATS[rec.ai.category].kind,
-        signal: typeof rec.ai.signal === "number" ? rec.ai.signal : v.signal, worth: rec.ai.worth || v.worth,
-      } : {});
+    if (rec.ai) {
+      const base = v;
+      v = Object.assign({}, v, { roast: rec.ai.roast || v.roast, gist: rec.ai.gist || v.gist });
+      // Own-provider engines may re-label, but the post's text can steer the model, so their verdict is held to the
+      // rules: a sponsored post stays an ad, the score moves at most 25 points, and the link is always the rules' link.
+      if (rec.ai.category && !overrides.has(rec.hash) && U.CATS[rec.ai.category] && base.category !== "ad") {
+        const sig = typeof rec.ai.signal === "number" ? Math.max(base.signal - 25, Math.min(base.signal + 25, rec.ai.signal)) : base.signal;
+        const aiWorth = rec.ai.worth, same = aiWorth && base.worth && aiWorth.href && aiWorth.href === base.worth.href;
+        Object.assign(v, {
+          category: rec.ai.category, label: U.CATS[rec.ai.category].label, kind: !!U.CATS[rec.ai.category].kind, signal: sig,
+          worth: same ? Object.assign({}, base.worth, { title: aiWorth.title || base.worth.title }) : base.worth,
+        });
+      }
+    }
     return v;
   }
 
@@ -101,18 +110,11 @@
     rec.autoFold = undefined; // a corrected label may fold or unfold once
     rec.userFold = undefined;
     apply(rec);
-    try {
-      const got = await api.storage.local.get(["overrides", "corrections"]);
-      const ov = got.overrides || {};
-      ov[rec.hash] = cat;
-      const keys = Object.keys(ov);
-      if (keys.length > 2000) keys.slice(0, keys.length - 2000).forEach((k) => delete ov[k]);
-      const corr = (got.corrections || []).concat([{
-        at: new Date().toISOString(), site: rec.payload.site, from: v.category, to: cat,
-        text: rec.payload.text.slice(0, 1200), links: (rec.payload.links || []).slice(0, 3).map((l) => l.href),
-      }]).slice(-300);
-      await api.storage.local.set({ overrides: ov, corrections: corr });
-    } catch (e) { /* storage unavailable: the correction still applies on this page */ }
+    // Saved by the background (storage.local, which holds API keys, is closed to content scripts).
+    send({ type: "correction", hash: rec.hash, correction: {
+      site: rec.payload.site, from: v.category, to: cat,
+      text: rec.payload.text.slice(0, 1200), links: (rec.payload.links || []).slice(0, 3).map((l) => l.href),
+    } });
   }
 
   // Ask the AI only for posts near the viewport.
@@ -265,7 +267,7 @@
 
   Promise.all([
     globalThis.unspinSettings(),
-    api.storage.local.get("overrides").then((r) => r.overrides || {}, () => ({})),
+    send({ type: "overrides" }).then((r) => (r && r.overrides) || {}),
   ]).then(([s, ov]) => {
     Object.keys(ov).forEach((k) => overrides.set(k, ov[k]));
     cfg = s;

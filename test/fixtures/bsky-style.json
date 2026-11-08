@@ -1,0 +1,11 @@
+[
+{"site":"bsky","text":"👋 Welcome to Mapleleaf, an open network where you pick your own feeds and take your followers with you. We post product news and updates from this account. A short orientation thread: 🧵","links":[]},
+{"site":"bsky","text":"Lots of new people here today!\n\nResearchers, introduce yourselves so newcomers can find you.\n\nI'm a soil ecologist working on how drought changes microbes in farmland, and I write a newsletter about it.\n\n🌱🔬 #SciComm","links":[]},
+{"site":"bsky","text":"Quiet weekend at the allotment. The last tomatoes are in, the beans are done, and the neighbours' cat has claimed the shed again.","links":[],"expect":"plain"},
+{"site":"bsky","text":"Version 2.14 is live!\n\nNow you can pin up to three feeds to your home screen and reorder them by dragging. Update from your app store today.","links":[],"expect":"release"},
+{"site":"bsky","text":"Introducing: profile badges\n\nWriters, artists and developers can now link their own website and show it as a verified badge on their profile. Rolling out to everyone this week.","links":[],"expect":"release"},
+{"site":"bsky","text":"New in beta: the appeals inbox. You can now see the reports you filed and follow what happened to them. Turn on beta features under Settings to try it.","links":[{"href":"https://example.org/blog/appeals-inbox","title":"Introducing the appeals inbox"}],"expect_not":["paper"]},
+{"site":"bsky","text":"Reminder: my livestream with the documentary director Sam Ortiz is tomorrow at noon Eastern / 9 am Pacific. RSVP below and bring your questions about making films on a tiny budget.","links":[{"href":"https://example.org/events/ortiz-live","title":"Live Q&A with Sam Ortiz"}],"expect":"event"},
+{"site":"bsky","text":"The illustrators on that cartoon clearly love real buildings: every storefront has the right drainpipes, the right signs and even the right fire escapes. Small details that make the city feel lived in.","links":[],"expect":"plain"},
+{"site":"bsky","text":"Announcing Pagekit!\n\nStarting today, anyone can build a small personal page from their posts, with a custom domain and no ads. Free while in beta.","links":[{"href":"https://example.org/pagekit","text":"example.org/pagekit"}],"expect":"release"}
+]

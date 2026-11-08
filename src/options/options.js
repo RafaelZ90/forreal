@@ -75,7 +75,12 @@ async function init() {
     el.value = s.models[p];
     el.onchange = () => save({ models: Object.assign({}, s.models, { [p]: el.value.trim() || globalThis.UNSPIN_DEFAULTS.models[p] }) }).then(() => (s.models[p] = el.value.trim()));
   }
+  $("aiDailyLimit").value = s.aiDailyLimit;
+  $("lim-val").textContent = s.aiDailyLimit;
+  $("aiDailyLimit").oninput = () => ($("lim-val").textContent = $("aiDailyLimit").value);
+  $("aiDailyLimit").onchange = () => save({ aiDailyLimit: Number($("aiDailyLimit").value) });
   $("ollamaUrl").value = s.ollamaUrl;
+  try { $("own-origin").textContent = new URL(api.runtime.getURL("/")).origin; } catch (e) { /* keep the placeholder */ }
   $("ollamaUrl").onchange = () => save({ ollamaUrl: $("ollamaUrl").value.trim() || globalThis.UNSPIN_DEFAULTS.ollamaUrl });
 
   seg("spice", s.spice, (v) => save({ spice: v }));

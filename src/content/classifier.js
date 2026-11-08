@@ -208,12 +208,18 @@
   };
 
   // ---------- helpers ----------
+  // 53-bit string hash (cyrb53): keys the cache and the reader's corrections per post.
   function hash(s) {
-    let h = 2166136261;
-    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
-    return (h >>> 0).toString(36);
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i);
+      h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
   }
-  const pick = (arr, seed) => arr[parseInt(seed, 36) % arr.length];
+  const pick = (arr, seed) => arr[parseInt(String(seed).slice(-6), 36) % arr.length];
   const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 
   function cleanText(t) {
@@ -240,6 +246,15 @@
   const CODE_HOSTS = /(github\.com|gitlab\.com|huggingface\.co|pypi\.org|npmjs\.com|chromewebstore|addons\.mozilla)/i;
   const JUNK_LINK = /(linkedin\.com\/(in|company|feed\/hashtag|school|showcase)\/|linkedin\.com\/search|\/hashtag\/|x\.com\/[^/]+$|twitter\.com\/[^/]+$|x\.com\/(hashtag|search)|bsky\.app\/(profile|search|hashtag)|^#|^mailto:|^javascript:)/i;
 
+  // Only plain web links ever become a link in the verdict line: http(s), parsed and normalised by the URL parser
+  // (which also strips the spaces, tabs and control characters that could hide a javascript: or data: URL).
+  function safeUrl(href) {
+    try {
+      const u = new URL(String(href || "").trim());
+      return u.protocol === "https:" || u.protocol === "http:" ? u.href : "";
+    } catch (e) { return ""; }
+  }
+
   function hostOf(href) {
     try { return new URL(href).hostname.replace(/^www\./, ""); } catch (e) { return ""; }
   }
@@ -256,7 +271,7 @@
   function bestLink(links) {
     const cands = [];
     for (let l of links || []) {
-      if (l && l.href) l = Object.assign({}, l, { href: unwrap(l.href) });
+      if (l && l.href) l = Object.assign({}, l, { href: safeUrl(unwrap(l.href)) });
       if (!l || !l.href || JUNK_LINK.test(l.href)) continue;
       const label = (l.title || l.text || "").trim();
       if (/^[#@]/.test(label)) continue;
@@ -429,6 +444,7 @@
   root.Unspin.classify = classify;
   root.Unspin.CATS = CATS;
   root.Unspin.hash = hash;
+  root.Unspin.safeUrl = safeUrl;
   root.Unspin.cleanText = cleanText;
   root.Unspin.bestLink = bestLink;
 })(typeof globalThis !== "undefined" ? globalThis : this);
