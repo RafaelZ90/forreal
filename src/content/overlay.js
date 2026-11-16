@@ -86,6 +86,17 @@
   :host([data-theme="bsky-dark"]) { --font: InterVariable, Inter, -apple-system, system-ui, sans-serif; --bg: #161e27; --fg: #f1f3f5; --muted: #8798b0; --line: #2e4052; --link: #208bfe; --worth: #3fcf8e; --maybe: #f2c94c; --skip: #ff6b6b; }
   `;
 
+  // One parsed stylesheet shared by every line (a long feed would otherwise parse the CSS once per post).
+  // Falls back to a <style> per line where constructed sheets are not allowed (e.g. Firefox content scripts).
+  let sheet;
+  function adopt(shadow) {
+    try {
+      if (sheet === undefined) { sheet = new CSSStyleSheet(); sheet.replaceSync(CSS); }
+      shadow.adoptedStyleSheets = [sheet];
+      return shadow.adoptedStyleSheets.length === 1;
+    } catch (e) { sheet = null; return false; }
+  }
+
   function luminance(rgb) {
     const m = rgb.match(/\d+(\.\d+)?/g);
     if (!m) return 1;
@@ -126,9 +137,11 @@
     try { host.setAttribute("data-forreal", (globalThis.chrome || {}).runtime.getManifest().version); } catch (e) { /* demo page */ }
     host.setAttribute("data-theme", themeFor(siteId, post));
     const shadow = host.attachShadow({ mode: "open" });
-    const style = document.createElement("style");
-    style.textContent = CSS;
-    shadow.appendChild(style);
+    if (!adopt(shadow)) {
+      const style = document.createElement("style");
+      style.textContent = CSS;
+      shadow.appendChild(style);
+    }
     const strip = el("div", "strip");
     strip.setAttribute("role", "button");
     strip.tabIndex = 0;

@@ -45,7 +45,10 @@
 
 <script src="fixtures/demo-posts.js"></script>
 <script>
-const LI = window.DEMO_LI, X = window.DEMO_X;
+// ?many=N repeats the feeds N times (performance checks); each copy's text differs so each is judged on its own.
+const MANY = Math.max(1, Math.min(100, Number(new URLSearchParams(location.search).get("many")) || 1));
+const rep = (list) => Array.from({ length: MANY }, (_, k) => list.map((p) => (k ? Object.assign({}, p, { t: p.t + "\n\n(copy " + k + ")" }) : p))).flat();
+const LI = rep(window.DEMO_LI), X = rep(window.DEMO_X);
 const li = document.getElementById("li");
 LI.forEach((p, i) => {
   const el = document.createElement("div");

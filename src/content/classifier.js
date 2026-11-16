@@ -270,10 +270,14 @@
       .trim();
   }
 
+  // Compiled once (global + case-insensitive), not per post.
+  const HYPE_PHRASE = new RegExp(P.hype[1][0].source, "i");
+  for (const k in P) P[k] = P[k].map(([re, w]) => [new RegExp(re.source, "gi"), w]);
+
   function score(text, patterns) {
     let s = 0;
     for (const [re, w] of patterns) {
-      const m = text.match(new RegExp(re.source, "gi"));
+      const m = text.match(re); // match() with a global regex resets lastIndex itself
       if (m) s += w * Math.min(m.length, 3);
     }
     return s;
@@ -400,7 +404,7 @@
         /\b(last (week|weekend|month|year)|yesterday|recently|wrapped up|was (a|an|such)|we had|gestern|letzte woche|vergangene[nr]? (woche|monat)|war ein|hatten wir)\b/i.test(text)) s.event = 0;
     if (s.take < 3) s.take = 0;
     // AI words alone are not hype; it takes hype phrasing ("game-changer", "you're falling behind").
-    if (s.hype < 4 || !new RegExp(P.hype[1][0].source, "i").test(lower)) s.hype = 0;
+    if (s.hype < 4 || !HYPE_PHRASE.test(lower)) s.hype = 0;
     if (s.insight < 3 || words < 60) s.insight = 0;
 
     // Choose category: personal hardship always wins; then priority order on ties.

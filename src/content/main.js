@@ -190,17 +190,27 @@
     if (cfg.engine !== "local") io.observe(post);
   }
 
+  const SCAN_BUDGET_MS = 30;
+  let scanMs = 0, scanMax = 0; // for the page status (performance checks)
   function scan() {
     pending = false;
     if (!cfg || !cfg.enabled) return;
-    for (const { el, site } of scopes()) {
+    const t0 = performance.now();
+    // Time-sliced: at most ~30 ms per run, in page order (top first), the rest in the next run, so a long feed
+    // never blocks scrolling. Unchanged posts cost only a text comparison.
+    let more = false;
+    outer: for (const { el, site } of scopes()) {
       if (!site || cfg.sites[site.id] === false) continue;
-      U.findPosts(site, el).forEach((p) => {
+      for (const p of U.findPosts(site, el)) {
+        if (performance.now() - t0 > SCAN_BUDGET_MS) { more = true; break outer; }
         try { processPost(site, p); } catch (e) { console.debug("[forreal]", e); }
-      });
+      }
     }
+    if (more) { pending = true; setTimeout(scan, 16); }
     records.forEach((rec) => { if (!rec.post.isConnected) records.delete(rec.post); });
     askVisible();
+    scanMs = performance.now() - t0;
+    scanMax = Math.max(scanMax, scanMs);
   }
 
   function teardown() {
@@ -227,6 +237,18 @@
   // Follow the site's light/dark switch.
   const themeWatch = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
   if (themeWatch && themeWatch.addEventListener) themeWatch.addEventListener("change", () => records.forEach((r) => r.strip.retheme()));
+
+  // The popup asks what was found on this tab (a feed with no posts usually means the markup changed).
+  const startedAt = Date.now();
+  api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (!msg || msg.type !== "pageStatus" || !sender || sender.id !== api.runtime.id || sender.tab) return false;
+    const sc = scopes()[0];
+    let folded = 0;
+    records.forEach((r) => { if (r.box.hasAttribute("data-unspin-fold")) folded++; });
+    sendResponse({ site: sc && sc.site ? sc.site.id : "", enabled: !!(cfg && cfg.enabled && sc && sc.site && cfg.sites[sc.site.id] !== false),
+      posts: records.size, folded, age: Date.now() - startedAt, scanMs: Math.round(scanMs * 10) / 10, scanMax: Math.round(scanMax) });
+    return false;
+  });
 
   api.storage.onChanged.addListener((changes, area) => {
     if (area !== "sync") return;

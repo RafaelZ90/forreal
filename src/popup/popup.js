@@ -66,5 +66,25 @@ async function render() {
   }
 }
 
+// What ForReal found on the open tab. A feed page with no posts usually means the site changed its markup.
+async function pageLine() {
+  if (!api.tabs || !api.tabs.query) return;
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    const r = await api.tabs.sendMessage(tab.id, { type: "pageStatus" });
+    if (!r || !r.site) return;
+    const line = $("page-line");
+    line.hidden = false;
+    if (!r.enabled) line.textContent = "ForReal is off for this site.";
+    else if (r.posts) line.textContent = "This page: " + r.posts + (r.posts === 1 ? " post" : " posts") + " judged, " + r.folded + " folded.";
+    else if (r.age > 8000) {
+      line.classList.add("warn");
+      line.textContent = "No posts found on this page. If it is a feed, " + r.site + " may have changed its layout; please report it.";
+    } else line.hidden = true;
+  } catch (e) { /* not a feed tab: no content script there */ }
+}
+
 $("open-options").onclick = (e) => { e.preventDefault(); api.runtime.openOptionsPage(); };
 render();
+pageLine();

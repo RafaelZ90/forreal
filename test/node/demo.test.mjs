@@ -66,6 +66,7 @@ test("demo feed: lines, folds and links as the owner's goals say", async (t) => 
         about: sr && sr.querySelector(".about") ? sr.querySelector(".about").textContent : "",
         line: sr ? sr.querySelector(".line").textContent : "",
         first: host ? host.parentElement.firstElementChild === host : null,
+        styled: sr ? getComputedStyle(sr.querySelector(".strip")).display === "flex" : null,
       };
     });
   });
@@ -79,10 +80,30 @@ test("demo feed: lines, folds and links as the owner's goals say", async (t) => 
       assert.ok(p.about.length > 10, "a folded post says what it was about: " + p.text);
     }
     if (p.link) assert.match(p.link, /^https?:\/\//);
-    if (p.shown) { assert.ok(p.line.length > 0, "the line has text"); assert.equal(p.first, true, "the line sits on top"); }
+    if (p.shown) { assert.equal(p.styled, true, "the line is styled"); assert.ok(p.line.length > 0, "the line has text"); assert.equal(p.first, true, "the line sits on top"); }
   }
   assert.ok(r.some((p) => p.folded), "something folds");
+  const status = await page.evaluate(() => chrome.runtime._deliver({ type: "pageStatus" }));
+  assert.equal(status.posts, r.filter((p) => p.tier).length, "popup page status counts the judged posts");
+  assert.equal(status.folded, r.filter((p) => p.folded).length);
   assert.ok(r.some((p) => p.tier === "worth" && p.link), "worth-it posts carry their link");
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test("performance: a long feed is judged quickly and re-scans stay cheap", async (t) => {
+  if (!need(t)) return;
+  const { page, errors } = await open("/test/demo.html?many=30");
+  const n = await page.evaluate(() => document.querySelectorAll("#li .feed-shared-update-v2, #xf article").length);
+  await page.waitForFunction((n) => document.querySelectorAll(".unspin-host").length >= n * 0.9, n, { timeout: 15000 });
+  const first = await page.evaluate(() => chrome.runtime._deliver({ type: "pageStatus" }));
+  // nothing changed: a re-scan only compares texts
+  for (let i = 0; i < 5; i++) { await page.evaluate(() => document.body.appendChild(document.createElement("i"))); await page.waitForTimeout(260); }
+  const again = await page.evaluate(() => chrome.runtime._deliver({ type: "pageStatus" }));
+  t.diagnostic(n + " posts; first full scan max " + first.scanMax + " ms; idle re-scan " + again.scanMs + " ms");
+  assert.ok(n > 300);
+  assert.ok(first.scanMax < 4000, "first scan " + first.scanMax + " ms");
+  assert.ok(again.scanMs < 60, "idle re-scan " + again.scanMs + " ms");
   assert.deepEqual(errors, []);
   await page.close();
 });
