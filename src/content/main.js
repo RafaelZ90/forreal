@@ -9,7 +9,6 @@
   if (!U || window.__unspinStarted) return;
   window.__unspinStarted = true;
 
-  const WORTH_AT = 65; // signal from which a post is "Worth it"
   let cfg = null;
   const counted = new Set(); // hashes already in today's stats
   const userFold = new Map(); // hash -> folded (the reader's choice wins)
@@ -39,40 +38,14 @@
     return site ? [{ el: document, site }] : [];
   }
 
-  function tierOf(v) {
-    if (v.kind) return "kind";
-    if (v.signal >= WORTH_AT) return "worth";
-    if (v.signal < cfg.threshold) return "skip";
-    return "maybe";
-  }
-  // Fold only what is certainly not worth it, so nobody misses a post they wanted: ads, engagement bait,
-  // or a very low signal. Other Skips keep their label but stay open. ("maybe" mode is the reader's explicit choice.)
-  function autoFold(v, tier) {
-    if (cfg.collapse === "never" || tier === "kind" || tier === "worth") return false;
-    if (v.category === "ad") return true;
-    if (cfg.collapse === "maybe") return true;
-    if (tier !== "skip" || (v.worth && v.worth.href)) return false;
-    return v.category === "bait" || v.signal < 15;
-  }
+  const tierOf = (v) => U.tierOf(v, cfg);
+  const autoFold = (v, tier) => U.autoFold(v, tier, cfg);
 
   function verdictOf(rec) {
     let v = rec.local;
-    if (overrides.has(rec.hash)) v = U.relabel(v, overrides.get(rec.hash), cfg.spice);
-    if (rec.ai) {
-      const base = v;
-      v = Object.assign({}, v, { roast: rec.ai.roast || v.roast, gist: rec.ai.gist || v.gist });
-      // Own-provider engines may re-label, but the post's text can steer the model, so their verdict is held to the
-      // rules: a sponsored post stays an ad, the score moves at most 25 points, and the link is always the rules' link.
-      if (rec.ai.category && !overrides.has(rec.hash) && U.CATS[rec.ai.category] && base.category !== "ad") {
-        const sig = typeof rec.ai.signal === "number" ? Math.max(base.signal - 25, Math.min(base.signal + 25, rec.ai.signal)) : base.signal;
-        const aiWorth = rec.ai.worth, same = aiWorth && base.worth && aiWorth.href && aiWorth.href === base.worth.href;
-        Object.assign(v, {
-          category: rec.ai.category, label: U.CATS[rec.ai.category].label, kind: !!U.CATS[rec.ai.category].kind, signal: sig,
-          worth: same ? Object.assign({}, base.worth, { title: aiWorth.title || base.worth.title }) : base.worth,
-        });
-      }
-    }
-    return v;
+    const corrected = overrides.has(rec.hash);
+    if (corrected) v = U.relabel(v, overrides.get(rec.hash), cfg.spice);
+    return rec.ai ? U.mergeAI(v, rec.ai, { corrected }) : v; // AI answers are held to the rules (policy.js)
   }
 
   function apply(rec) {

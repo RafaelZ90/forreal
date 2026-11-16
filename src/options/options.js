@@ -36,11 +36,14 @@ const AI_TEXT = {
   downloadable: "Chrome can download its on-device AI for free. Until then ForReal uses its rules.",
   downloading: "Chrome is downloading its on-device AI… ForReal uses its rules meanwhile.",
   unavailable: "This browser or computer has no built-in AI, so ForReal uses its rules. That works fine.",
+  pageOnly: "Chrome has its on-device AI, but this Chrome version does not offer it to extensions in the background yet, so ForReal uses its rules. That works fine.",
 };
 async function aiStatus() {
   const r = await api.runtime.sendMessage({ type: "aiStatus" }).catch(() => ({ status: "unavailable" }));
   const st = (r && r.status) || "unavailable";
-  $("ai-status-text").textContent = AI_TEXT[st] || AI_TEXT.unavailable;
+  // The worker is where the lines are written. This page may see a model the worker cannot (older Chrome).
+  const here = st === "unavailable" && globalThis.UnspinChromeAI ? await globalThis.UnspinChromeAI.status() : "unavailable";
+  $("ai-status-text").textContent = here !== "unavailable" ? AI_TEXT.pageOnly : AI_TEXT[st] || AI_TEXT.unavailable;
   $("ai-status").classList.toggle("ok", st === "available");
   // The download needs a click on a page that can see the model (this one, in Chrome 138+).
   $("ai-download").hidden = !(st === "downloadable" && globalThis.UnspinChromeAI && globalThis.LanguageModel);

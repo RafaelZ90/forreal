@@ -47,10 +47,11 @@ async function render() {
   for (const [cat, n] of top) {
     const row = document.createElement("div");
     row.className = "bar";
-    row.innerHTML = '<span></span><span class="track"><span class="fill"></span></span><span class="n"></span>';
-    row.children[0].textContent = LABELS[cat] || cat;
-    row.querySelector(".fill").style.width = Math.max(6, (100 * n) / max) + "%";
-    row.children[2].textContent = n;
+    const mk = (cls, text) => { const e = document.createElement("span"); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const track = mk("track"), fill = mk("fill");
+    fill.style.width = Math.max(6, (100 * n) / max) + "%";
+    track.appendChild(fill);
+    row.append(mk("", LABELS[cat] || cat), track, mk("n", String(n)));
     bars.appendChild(row);
   }
 

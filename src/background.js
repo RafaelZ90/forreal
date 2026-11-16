@@ -18,34 +18,15 @@ if (typeof importScripts === "function") {
 }
 
 // ---------- Chrome's on-device model ----------
-// Called directly when this context exposes LanguageModel, otherwise through a hidden offscreen page.
-let offscreenReady = null;
-async function viaOffscreen(msg) {
-  if (!api.offscreen) return { ok: false, error: "unavailable" };
-  if (!offscreenReady) {
-    offscreenReady = (async () => {
-      const has = api.offscreen.hasDocument ? await api.offscreen.hasDocument() : false;
-      if (!has) {
-        await api.offscreen.createDocument({
-          url: "src/offscreen/ai.html",
-          reasons: ["DOM_PARSER"],
-          justification: "Runs Chrome's built-in on-device language model, which is only exposed to window contexts.",
-        });
-      }
-    })().catch((e) => { offscreenReady = null; throw e; });
-  }
-  await offscreenReady;
-  return api.runtime.sendMessage(Object.assign({ target: "offscreen-ai" }, msg));
-}
+// Used only where this worker itself exposes LanguageModel (the Prompt API). There is deliberately no offscreen
+// document: no offscreen reason covers "run a language model", and a mislabelled reason is a store rejection.
+// Where the worker has no model, the rules write the lines (the documented fallback).
 async function nanoStatus() {
-  if (globalThis.LanguageModel) return globalThis.UnspinChromeAI.status();
-  try { const r = await viaOffscreen({ op: "status" }); return r && r.ok ? r.r : "unavailable"; } catch (e) { return "unavailable"; }
+  return globalThis.LanguageModel ? globalThis.UnspinChromeAI.status() : "unavailable";
 }
 async function nanoDecode(post, hint, spice) {
-  if (globalThis.LanguageModel) return globalThis.UnspinChromeAI.decode(post, hint, spice);
-  const r = await viaOffscreen({ op: "decode", post: { text: post.text }, hint, spice });
-  if (!r || !r.ok) throw new Error((r && r.error) || "On-device AI did not answer.");
-  return r.r;
+  if (!globalThis.LanguageModel) throw new Error("On-device AI is not available in the background on this browser.");
+  return globalThis.UnspinChromeAI.decode({ text: post.text }, hint, spice);
 }
 let nanoChain = Promise.resolve(); // the on-device model takes one post at a time
 const nanoQueued = (fn) => { const p = nanoChain.then(fn, fn); nanoChain = p.catch(() => {}); return p; };

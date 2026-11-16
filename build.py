@@ -40,7 +40,6 @@ def main():
 
     ff = json.loads(json.dumps(base))
     ff["background"] = {"scripts": ["src/defaults.js", "src/ai-chrome.js", "src/background.js"]}
-    ff["permissions"] = [p for p in ff["permissions"] if p != "offscreen"]  # Chrome-only
     ff["browser_specific_settings"] = {"gecko": {
         "id": "forreal@forreal.extension", "strict_min_version": "121.0",
         # Rules and on-device AI keep everything local; the optional own-provider engines send post text to that provider.

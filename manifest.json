@@ -26,8 +26,7 @@
     "service_worker": "src/background.js"
   },
   "permissions": [
-    "storage",
-    "offscreen"
+    "storage"
   ],
   "host_permissions": [
     "https://www.linkedin.com/*",
@@ -52,6 +51,7 @@
       "js": [
         "src/defaults.js",
         "src/content/classifier.js",
+        "src/content/policy.js",
         "src/content/sites.js",
         "src/content/overlay.js",
         "src/content/main.js"
