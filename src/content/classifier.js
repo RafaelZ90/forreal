@@ -337,7 +337,7 @@
       .filter((s) => s.split(/\s+/).length >= 4);
   }
 
-  const FLUFFY_SENTENCE = /\b(thrilled|excited|humbled|honou?red|grateful|blessed|agree\?|thoughts\?|let that sink in|read that again|journey|incredible|amazing|so proud|can'?t wait)\b/i;
+  const FLUFFY_SENTENCE = /\b(thrilled|excited|humbled|honou?red|grateful|blessed|agree\?|thoughts\?|let that sink in|read that again|journey|incredible|amazing|so proud|can'?t wait|happy to (share|announce)|pleased to|delighted|huge thanks|thank you|thanks to|freue mich|danke)\b/i;
 
   function gistOf(text) {
     const ss = sentences(text);

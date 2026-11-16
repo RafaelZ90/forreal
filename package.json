@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node --test --test-reporter=spec test/node/*.test.mjs",
     "test:rules": "node --test --test-reporter=spec test/node/classifier.test.mjs test/node/security.test.mjs test/node/background.test.mjs",
-    "test:browser": "node --test --test-reporter=spec test/node/demo.test.mjs"
+    "test:browser": "node --test --test-reporter=spec test/node/demo.test.mjs test/node/sites.test.mjs",
+    "store:assets": "node tools/store-assets.mjs"
   },
   "devDependencies": {
     "playwright": "1.63.0"

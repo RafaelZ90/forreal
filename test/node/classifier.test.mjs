@@ -40,3 +40,10 @@ test("new fixture files check every entry", () => {
     for (const [i, p] of JSON.parse(fs.readFileSync(file, "utf8")).entries()) assert.notEqual(C.check(U, p).ok, null, f + " #" + i + " has no expectation");
   }
 });
+
+test("gist: the informative sentence, not the thank-you", () => {
+  const paper = C.fromDemo(ctx.DEMO_LI).find((p) => /DAO Governance/.test(p.text));
+  assert.match(U.classify(paper, {}).gist, /^We study 312/);
+  const job = U.classify({ text: "Huge thanks to everyone who helped. We are hiring two backend engineers in Lisbon to build our payments API, salary 70k. Thank you all!", links: [] }, {});
+  assert.match(job.gist, /^We are hiring two backend engineers/);
+});

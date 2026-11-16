@@ -162,5 +162,8 @@ test("manifest: no offscreen, minimal permissions", async () => {
   assert.deepEqual(m.permissions, ["storage"]);
   assert.ok(!JSON.stringify(m).includes("offscreen"));
   assert.ok(!m.content_security_policy, "default MV3 CSP");
+  assert.ok(m.description.length <= 132, "store summary limit: " + m.description.length);
+  assert.ok(m.name.length <= 75);
+  assert.match(m.version, /^\d+\.\d+\.\d+$/);
   for (const h of m.optional_host_permissions) assert.match(h, /^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)\//);
 });
