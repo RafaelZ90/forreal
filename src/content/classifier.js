@@ -41,6 +41,9 @@
       [/\b(i('ve| have| was| got)( been| just)? promoted|my promotion)\b/, 4], // first person only
       [/\bfreue mich.{0,40}(neue|anzukündigen|bekannt)/, 4],
       [/\bmy last day at\b/, 3],
+      // German
+      [/\bneue (position|stelle|rolle|herausforderung)\b|\bneues kapitel\b|\bmein(en)? erste[nr]? (tag|arbeitstag|woche)\b/, 4],
+      [/\b(ich habe|ich bin) .{0,60}(angetreten|gewechselt|eingestiegen)\b|\bfreue mich.{0,80}(mitteilen|verkünden|anzukündigen)\b/, 3],
     ],
     brag: [
       [/\b(humbled|honou?red|blessed|grateful|privileged)\b/, 2],
@@ -50,16 +53,23 @@
       [/\b(milestone|followers|\d+k followers)\b/, 2],
       [/\b(featured in|spoke at|invited to speak)\b/, 2],
       [/\bstolz\b/, 2],
+      // German
+      [/\b(ausgezeichnet|geehrt|dankbar|auszeichnung|preisträger\w*|top \d+ (frauen|köpfe|unternehmen))\b/, 2],
     ],
     bait: [
       [/\bagree\s*\?/, 4],
       [/\b(thoughts|what do you think|what would you do|who else)\s*\?/, 2],
-      [/\b(comment|type|drop) ['"“]?[a-z]{2,10}['"”]? (below|in the comments)\b/, 5],
+      [/\b(comment|type|drop|reply|write) ['"“]?[a-z]{2,12}['"”]?( below| in the comments| to get| and i'?ll| for (the|my|a) )/, 5],
+      [/\bif this (post )?gets \d[\d,.]*k? (likes|comments|reposts)\b|\blike and (comment|share)\b/, 4],
       [/\b(like|repost|share) (if|this if)\b/, 4],
       [/♻️|\brepost to\b|\bshare (this )?with your network\b/, 3],
       [/\bfollow (me )?for more\b/, 3],
       [/\b(let that sink in|read that again)\b/, 4],
       [/\bunpopular opinion\b/, 2],
+      // German
+      [/\b(seht ihr das (auch )?so|stimmt ihr zu|was meint ihr|wie seht ihr das|eure meinung)\s*\?/, 3],
+      [/\bkommentier\w* (mit |einfach )?[„"'][a-zäöü]{2,12}[“"']/, 5],
+      [/\b(teilt|teile) (den|diesen) (beitrag|post)\b|\bfolg(e|t) mir für mehr\b/, 3],
     ],
     lesson: [
       [/\bmy (son|daughter|kid|toddler|grandma|dog|uber driver|barista)\b/, 3],
@@ -67,6 +77,9 @@
       [/\b(story ?time|a few years ago,? i|i was (rejected|fired|broke))\b/, 2],
       [/\b(nobody talks about|no one tells you|the truth is)\b/, 2],
       [/\b(b2b|leadership|sales) lessons?\b/, 3],
+      [/\b(never give up|success is not|believe in yourself|your network is your net worth|the courage to continue|hustle|grind never stops|mindset is everything)\b/, 3],
+      // German
+      [/\bmein(e)? (sohn|tochter|kind|oma|opa|hund)\b|\bwas ich daraus gelernt habe\b|\bhat mir .{0,40}beigebracht\b|\blektion\b/, 3],
     ],
     sales: [
       [/\b(dm me|dm you|send me a dm|message me|link in (the )?(comments|bio))\b/, 4],
@@ -74,19 +87,28 @@
       [/\b(limited (spots|seats)|early bird|\d+% off|discount code|use code)\b/, 4],
       [/\b(my (course|cohort|newsletter|coaching)|subscribe)\b/, 2],
       [/\b(10x|scale your|grow your (business|audience))\b/, 2],
+      // German
+      [/\bschreib (mir )?(eine )?(dm|nachricht|pn)\b|\blink in (den kommentaren|meinem profil|der bio)\b|\berstgespräch\b|\bnur noch \d+ plätze\b|\d+ ?% rabatt\b|\brabattcode\b|\bmit dem code\b/, 4],
+      [/\bkostenlose[nrs]? (leitfaden|checkliste|e-?book|vorlage|masterclass|guide)\b/, 4],
+      [/\bmein(em|en)? (coaching|onlinekurs|kurs|newsletter|programm)\b|\bcoaching\b/, 2],
     ],
     hype: [
       [/\b(ai|gpt|chatgpt|llms?|agents?|agentic|genai|claude|gemini|copilot)\b/, 1],
-      [/\b((changed|changes|change) everything|game[- ]?changer|revolutioni[sz]e|disrupt|the future of|is dead|you'?re (falling|being left) behind)\b/, 2],
-      [/\b(prompts?|\d+ (ai )?tools)\b/, 1],
+      [/\b((changed|changes|change) everything|game[- ]?changer|revolutioni[sz]e|disrupt|the future of|is dead|you'?re (falling|being left) behind|verändert alles|gamechanger|wird abgehängt|die zukunft (der|des)|revolutioniert)\b/, 2],
+      [/\b(prompts?|\d+ (ai |ki-)?tools)\b|\bki\b|\bkünstliche intelligenz\b/, 1],
     ],
     hiring: [
       [/#hiring\b|\bwe('| a)re hiring\b|\b(open|new) (role|position|vacancy)\b/, 5],
       [/\bjoin (our|my) team\b|\bwir suchen\b|\bapply (here|now|below)\b/, 4],
+      // German
+      [/\bwir suchen\b|\bstellenangebot\b|\boffene stelle\b|\bjetzt bewerben\b|\bbewerbungsschluss\b|\bwir stellen ein\b|\((m\/w\/d|w\/m\/d|m\/f\/d|d\/m\/w)\)/, 5],
     ],
     personal: [
       [/\b(passed away|rest in peace|\brip\b|funeral|cancer|diagnos(is|ed)|miscarriage|grief|depression|burn ?out)\b/, 6],
       [/\b(laid off|been let go|lost my job|open to work|#opentowork|looking for (my next|new) (role|opportunit))\b/, 5],
+      // German
+      [/\b(verstorben|beerdigung|trauer\w*|krebs\w*|diagnose|fehlgeburt|depression\w*|burnout|krankgeschrieben)\b/, 6],
+      [/\b(mir|uns) .{0,40}gekündigt\b|\bbetriebsbedingt\b|\bentlassen worden\b|\bmeinen job verloren\b|\bauf (der )?jobsuche\b|\bauf der suche nach einer neuen (stelle|position|herausforderung)\b|\boffen für neue (stellen|möglichkeiten)\b/, 5],
     ],
     paper: [
       [/\b(paper|preprint|article|stud(y|ies)|journal|proceedings|conference paper|dissertation|thesis|experiments?|replications?)\b/, 2],
@@ -95,26 +117,42 @@
       [/\b(arxiv|ssrn|doi\.org|10\.\d{4,}\/|researchgate|acm|ieee|springer|elsevier|aisel|misq|nature|science)\b/, 4],
       [/\b(we (find|show|propose|study|examine|analy[sz]e)|our (findings|results|data))\b/, 3],
       [/\b(n ?= ?\d+|sample of \d+|regression|survey|interviews)\b/, 2],
+      // German
+      [/\b(studie|publikation|aufsatz|zeitschrift|tagungsband|dissertation|doktorarbeit|fachartikel|forschungsergebnisse)\b/, 2],
+      [/\b(veröffentlicht in|erschienen in|angenommen (in|bei|für))\b|\bin der zeitschrift\b/, 3],
+      [/\bwir (zeigen|untersuchen|finden)\b|\bwir haben .{0,40}(untersucht|ausgewertet|befragt)\b|\bunsere (ergebnisse|daten)\b|\bwerten .{0,40}aus\b|\b(alle|offene) daten\b|\bdaten und code\b/, 3],
+      [/\b(befragung\w*|stichprobe|regression|befragungsdaten)\b/, 2],
     ],
     event: [
-      [/\b(workshop|webinar|meetup|conference|summit|panel|hackathon|seminar|tutorial|bootcamp|livestream|live stream|fireside chat|ama|q&a|book launch|town hall)\b/, 3],
+      [/\b(workshop|webinar|meetup|conference|summit|panel|hackathon|seminar|tutorial|bootcamp|livestream|live stream|fireside chat|ama|q&a|book launch|town hall|summer school|winter school|symposium|colloquium|lecture series|reading group|doctoral consortium|course(?: [^.\n]{0,40})? starts|mooc)\b/, 3],
       [/\b\d{1,2}(:\d{2})?\s?(am|pm)\b|\bnoon\b|\b(tomorrow|tonight|today) at\b|\b\d{1,2}(:\d{2})?\s?(cet|cest|est|edt|pst|pdt|utc|gmt)\b/, 2],
-      [/\b(register|registration|sign ?up|rsvp|join us)\b/, 2],
+      [/\b(register|registration|sign ?up|rsvp|join us|applications? (are |is )?(now )?open|apply by|enrol(l)?ment (is )?open|enrol(l)? (now|by|here))\b/, 2],
       [/\b(on|this) (mon|tue|wed|thu|fri|sat|sun)[a-z]*\b|\b\d{1,2}(st|nd|rd|th)? (jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}\b/, 2],
       [/\b(cfp|call for (papers|proposals|submissions)|deadline)\b/, 3],
+      // German
+      [/\b(tagung|vortrag|vorträge|stammtisch|veranstaltung|schulung|ringvorlesung|fortbildung|sommerschule)\b/, 3],
+      [/\b\d{1,2}([:.]\d{2})? uhr\b|\b(am|nächsten?|diesen|kommenden) (montag|dienstag|mittwoch|donnerstag|freitag|samstag|sonntag)\b|\b\d{1,2}\. (januar|februar|märz|april|mai|juni|juli|august|september|oktober|november|dezember)\b/, 2],
+      [/\b(anmeldung|anmelden|plätze sind begrenzt|tickets)\b/, 2],
+      [/\b(einreichungsfrist|frist)\b/, 3],
     ],
     release: [
       [/\b(we (just )?(launched|released|shipped|open[- ]sourced)|now (live|available)|introducing|announcing|starting today|now you can|new in beta|rolling out|v\d+\.\d+)\b/, 3],
       [/\b(github\.com|gitlab|huggingface|open[- ]source|repo|dataset|api|plugin|extension)\b/, 2],
+      // German
+      [/\bab sofort (verfügbar|erhältlich)\b|\bjetzt (verfügbar|live)\b|\bals open source\b|\bwir haben .{0,60}veröffentlicht\b|\bversion \d+\.\d+\b/, 3],
     ],
     take: [
       [/\b(unpopular opinion|hot take|controversial|overrated|underrated|is dead|is a scam|is a myth|stop (doing|using|saying))\b/, 3],
       [/\b(the (real )?problem with|nobody (wants|needs|cares)|everyone is wrong|you don'?t need|should(n'?t)? be|must stop)\b/, 2],
       [/\b(change my mind|fight me|i said what i said)\b/, 3],
+      // German
+      [/\bist tot\b|überschätzt\b|\bwird abgehängt\b/, 2],
     ],
     insight: [
       [/\b(\d+(\.\d+)?%|\$\d|€\d|\d{2,}(,\d{3})+)\b/, 1],
       [/\b(because|therefore|however|in contrast|the data|evidence|benchmark|measured|tested)\b/, 1],
+      // German
+      [/\b(weil|deshalb|jedoch|allerdings|die daten|gemessen|getestet)\b/, 1],
     ],
   };
 
@@ -232,10 +270,14 @@
       .trim();
   }
 
+  // Compiled once (global + case-insensitive), not per post.
+  const HYPE_PHRASE = new RegExp(P.hype[1][0].source, "i");
+  for (const k in P) P[k] = P[k].map(([re, w]) => [new RegExp(re.source, "gi"), w]);
+
   function score(text, patterns) {
     let s = 0;
     for (const [re, w] of patterns) {
-      const m = text.match(new RegExp(re.source, "gi"));
+      const m = text.match(re); // match() with a global regex resets lastIndex itself
       if (m) s += w * Math.min(m.length, 3);
     }
     return s;
@@ -295,7 +337,7 @@
       .filter((s) => s.split(/\s+/).length >= 4);
   }
 
-  const FLUFFY_SENTENCE = /\b(thrilled|excited|humbled|honou?red|grateful|blessed|agree\?|thoughts\?|let that sink in|read that again|journey|incredible|amazing|so proud|can'?t wait)\b/i;
+  const FLUFFY_SENTENCE = /\b(thrilled|excited|humbled|honou?red|grateful|blessed|agree\?|thoughts\?|let that sink in|read that again|journey|incredible|amazing|so proud|can'?t wait|happy to (share|announce)|pleased to|delighted|huge thanks|thank you|thanks to|freue mich|danke)\b/i;
 
   function gistOf(text) {
     const ss = sentences(text);
@@ -358,11 +400,11 @@
     if (s.paper < 6) s.paper = 0;
     if (s.event < 5) s.event = 0;
     // A workshop that already happened is a report, not an invitation.
-    if (s.event && !/\b(register|registration|sign ?up|rsvp|apply (now|here|by|before|today)|deadline|tickets?|join us|save the date|cfp|call for)\b/i.test(text) &&
-        /\b(last (week|weekend|month|year)|yesterday|recently|wrapped up|was (a|an|such)|we had)\b/i.test(text)) s.event = 0;
+    if (s.event && !/\b(register|registration|sign ?up|rsvp|apply (now|here|by|before|today)|deadline|tickets?|join us|save the date|cfp|call for|anmeld\w*|einreichungsfrist)\b/i.test(text) &&
+        /\b(last (week|weekend|month|year)|yesterday|recently|wrapped up|was (a|an|such)|we had|gestern|letzte woche|vergangene[nr]? (woche|monat)|war ein|hatten wir)\b/i.test(text)) s.event = 0;
     if (s.take < 3) s.take = 0;
     // AI words alone are not hype; it takes hype phrasing ("game-changer", "you're falling behind").
-    if (s.hype < 4 || !new RegExp(P.hype[1][0].source, "i").test(lower)) s.hype = 0;
+    if (s.hype < 4 || !HYPE_PHRASE.test(lower)) s.hype = 0;
     if (s.insight < 3 || words < 60) s.insight = 0;
 
     // Choose category: personal hardship always wins; then priority order on ties.
@@ -384,6 +426,7 @@
     if (category === "bait") signal -= 15;
     if (category === "ad") signal -= 20;
     if (link) signal += cat.fluff ? 3 : 10;
+    if (link && category === "hiring") signal += 6; // an opening with a link to apply is a real thing, like a paper
     if (/\d/.test(text)) signal += 3;
     signal -= Math.min(12, Math.max(0, emojis - 4) * 1.5);
     signal -= Math.min(10, Math.max(0, hashtags - 3) * 2);

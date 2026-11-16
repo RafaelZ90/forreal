@@ -11,36 +11,30 @@
 </head>
 <body>
 <div id="sum">running…</div>
-<table><thead><tr><th>fixture</th><th>category</th><th>signal</th><th>roast</th><th>worth</th><th>text</th></tr></thead><tbody id="rows"></tbody></table>
+<table><thead><tr><th>fixture</th><th>category</th><th>signal / tier</th><th>roast</th><th>worth</th><th>text</th></tr></thead><tbody id="rows"></tbody></table>
 <script src="../src/content/classifier.js"></script>
+<script src="../src/content/policy.js"></script>
 <script src="fixtures/demo-posts.js"></script>
+<script src="checks.js"></script>
 <script>
-// Each fixture: {text, links, promoted?, expect?: category, expect_not?: [categories]}
-const demo = (posts) => posts.map((p) => ({
-  text: p.t, promoted: !!p.promoted, expect: p.expect,
-  links: [p.link && { href: p.link.href, text: p.link.text }, p.card && { href: p.card.href, title: p.card.title }].filter(Boolean),
-}));
-const FIXTURES = ["demo-posts.js (LinkedIn)", "demo-posts.js (X)", "fixtures/bsky-style.json", "fixtures/regressions.json"];
+// The same fixture lists and checks as `npm test` (test/node/classifier.test.mjs), drawn as a table.
+const FIXTURES = ["demo-posts.js (LinkedIn)", "demo-posts.js (X)", "fixtures/bsky-style.json", "fixtures/regressions.json",
+  "fixtures/worth-it.json", "fixtures/junk.json", "fixtures/german.json"];
 (async () => {
   let pass = 0, fail = 0, total = 0;
   const rows = document.getElementById("rows");
   for (const f of FIXTURES) {
     let list;
-    if (f.includes("LinkedIn")) list = demo(window.DEMO_LI);
-    else if (f.includes("(X)")) list = demo(window.DEMO_X);
+    if (f.includes("LinkedIn")) list = UnspinChecks.fromDemo(window.DEMO_LI);
+    else if (f.includes("(X)")) list = UnspinChecks.fromDemo(window.DEMO_X);
     else try { list = await (await fetch(f)).json(); } catch (e) { continue; }
     for (const p of list) {
       total++;
-      const v = Unspin.classify(p, { spice: "snarky" });
-      let ok = null;
-      if (p.expect) ok = v.category === p.expect;
-      if (p.expect_not) ok = (ok !== false) && !p.expect_not.includes(v.category);
-      if (p.expect_host) ok = (ok !== false) && !!v.worth && v.worth.host === p.expect_host;
-      if (p.expect_no_link) ok = (ok !== false) && !(v.worth && v.worth.href);
+      const { v, tier, folds, ok, why } = UnspinChecks.check(Unspin, p);
       if (ok === true) pass++; if (ok === false) fail++;
       const tr = document.createElement("tr");
       tr.className = ok === false ? "fail" : ok ? "pass" : "";
-      [f.replace("fixtures/", ""), v.category + (p.expect ? " (want " + p.expect + ")" : ""), v.signal, v.roast, v.worth ? v.worth.title : "", p.text.slice(0, 110)]
+      [f.replace("fixtures/", ""), v.category + (why.length ? " (" + why.join("; ") + ")" : ""), v.signal + " " + tier + (folds ? " folded" : ""), v.roast, v.worth ? v.worth.title : "", p.text.slice(0, 110)]
         .forEach((c) => { const td = document.createElement("td"); td.textContent = c; tr.appendChild(td); });
       rows.appendChild(tr);
     }

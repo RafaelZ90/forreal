@@ -1,7 +1,7 @@
 """Concatenate shim + content scripts into one compact file for pasting into a live page during testing."""
 import pathlib, re
 root = pathlib.Path(__file__).resolve().parent.parent
-files = ["test/shim.js", "src/defaults.js", "src/content/classifier.js", "src/content/sites.js", "src/content/overlay.js", "src/content/main.js"]
+files = ["test/shim.js", "src/defaults.js", "src/content/classifier.js", "src/content/policy.js", "src/content/sites.js", "src/content/overlay.js", "src/content/main.js"]
 out = []
 for f in files:
     s = (root / f).read_text()

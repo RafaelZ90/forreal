@@ -47,10 +47,11 @@ async function render() {
   for (const [cat, n] of top) {
     const row = document.createElement("div");
     row.className = "bar";
-    row.innerHTML = '<span></span><span class="track"><span class="fill"></span></span><span class="n"></span>';
-    row.children[0].textContent = LABELS[cat] || cat;
-    row.querySelector(".fill").style.width = Math.max(6, (100 * n) / max) + "%";
-    row.children[2].textContent = n;
+    const mk = (cls, text) => { const e = document.createElement("span"); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+    const track = mk("track"), fill = mk("fill");
+    fill.style.width = Math.max(6, (100 * n) / max) + "%";
+    track.appendChild(fill);
+    row.append(mk("", LABELS[cat] || cat), track, mk("n", String(n)));
     bars.appendChild(row);
   }
 
@@ -65,5 +66,25 @@ async function render() {
   }
 }
 
+// What ForReal found on the open tab. A feed page with no posts usually means the site changed its markup.
+async function pageLine() {
+  if (!api.tabs || !api.tabs.query) return;
+  try {
+    const [tab] = await api.tabs.query({ active: true, currentWindow: true });
+    if (!tab) return;
+    const r = await api.tabs.sendMessage(tab.id, { type: "pageStatus" });
+    if (!r || !r.site) return;
+    const line = $("page-line");
+    line.hidden = false;
+    if (!r.enabled) line.textContent = "ForReal is off for this site.";
+    else if (r.posts) line.textContent = "This page: " + r.posts + (r.posts === 1 ? " post" : " posts") + " judged, " + r.folded + " folded.";
+    else if (r.age > 8000) {
+      line.classList.add("warn");
+      line.textContent = "No posts found on this page. If it is a feed, " + r.site + " may have changed its layout; please report it.";
+    } else line.hidden = true;
+  } catch (e) { /* not a feed tab: no content script there */ }
+}
+
 $("open-options").onclick = (e) => { e.preventDefault(); api.runtime.openOptionsPage(); };
 render();
+pageLine();

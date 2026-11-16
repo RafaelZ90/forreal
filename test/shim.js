@@ -1,6 +1,7 @@
 /* Stand-in for the extension APIs so the content scripts run on a plain page (demo + tests). */
 (function () {
   const listeners = [];
+  const msgListeners = [];
   const mk = (area) => {
     const data = {};
     return {
@@ -28,6 +29,10 @@
   globalThis.chrome = {
     storage: { sync, local, onChanged: { addListener: (f) => listeners.push(f) } },
     runtime: {
+      id: "demo",
+      onMessage: { addListener: (f) => msgListeners.push(f) },
+      // tests: deliver a message as if from the extension's popup
+      _deliver: (msg) => new Promise((resolve) => msgListeners.forEach((f) => f(msg, { id: "demo" }, resolve))),
       sendMessage: async (msg) => {
         if (msg.type === "analyze") return { skip: true };
         if (msg.type === "stats") {

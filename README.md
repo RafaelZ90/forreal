@@ -39,7 +39,8 @@ Free by default, no keys, no hosting, nothing leaves the computer.
 In every engine the rules decide the genre, the signal score and the "worth your time" link; the on-device AI only
 writes the roast and the one-sentence gist, one post at a time, cached. If the model is missing, still downloading or
 fails, the card keeps the rules' lines. Chrome downloads the model once (a few GB); the settings page has a button for it.
-The model runs in the background worker when Chrome exposes it there, otherwise in a hidden offscreen page.
+The model runs in the background worker where Chrome exposes it there; otherwise the rules write the lines (the
+settings page says which). There is no hidden offscreen page.
 
 ## Install (developer mode)
 
@@ -58,13 +59,36 @@ python3 build.py
 ```
 src/defaults.js            shared settings
 src/background.js          AI providers, queue, cache, stats (service worker / Firefox event page)
-src/content/classifier.js  local decoder: categories, roasts, signal, gist, best link
+src/content/classifier.js  local decoder: categories, roasts, signal, gist, best link (English and German)
+src/content/policy.js      tier, automatic fold, and how far an AI answer may change the rules' verdict
 src/content/sites.js       site adapters (LinkedIn, X, Bluesky): post, text, author, links, ads
 src/content/overlay.js     the verdict line (shadow DOM, per-site themes)
 src/content/main.js        finds posts, adds the line, folds skips, asks the AI near the viewport
 src/popup/, src/options/   toolbar popup and settings page
 test/demo.html             made-up LinkedIn- and X-style feed that runs the real content scripts
+test/fixtures/             invented posts with the verdict they must get (worth-it, junk, German, regressions)
+test/node/                 the test suite (npm test)
+store/                     Chrome Web Store kit: listing, permission justifications, data disclosure, images
 ```
+
+### Tests
+
+Node 20+ (CI uses 22):
+
+```bash
+npm ci && npx playwright install chromium   # once
+npm test                                    # everything (about 15 s)
+npm run test:rules                          # classifier, security rules, background worker; no browser needed
+npm run store:assets                        # re-make the store screenshots and promo tile from the demo feed
+```
+
+`npm test` checks every fixture (category, tier, fold, link), the security rules (only `http(s)` links from the post,
+model output held to the rules, no `innerHTML`, `storage.local` closed to content scripts, message checks), the site
+adapters on invented LinkedIn/X/Bluesky markup (open and folded must read the same), the demo self-test (Show/Fold stays
+put), a speed budget on a 330-post feed, and the built packages. GitHub Actions runs it on every push and keeps the zips.
+
+To add a case: put an invented post into the matching `test/fixtures/*.json` with `expect` (genre), `expect_tier`
+(`worth`/`maybe`/`skip`/`kind`), `expect_no_fold` or `expect_fold`, then make the rules pass.
 
 Run the demo without installing anything:
 
@@ -72,7 +96,7 @@ Run the demo without installing anything:
 python3 -m http.server 8765
 ```
 
-Then open <http://127.0.0.1:8765/test/demo.html> (add `?spice=savage` or `?collapse=never`) and <http://127.0.0.1:8765/test/run.html> for the classifier checks (demo posts plus invented Bluesky-style posts).
+Then open <http://127.0.0.1:8765/test/demo.html> (add `?spice=savage` or `?collapse=never`) and <http://127.0.0.1:8765/test/run.html> for the classifier table (the same fixtures and checks as `npm test`).
 `python3 test/make_previews.py` writes preview pages for the popup and settings page.
 
 ## Security and privacy
@@ -89,7 +113,7 @@ Then open <http://127.0.0.1:8765/test/demo.html> (add `?spice=savage` or `?colla
   and cache clearing only from its own pages.
 - **Other people's posts** are kept only on your device: up to 800 AI lines in a cache, and up to 300 correction
   examples for 30 days (they include the post's text; share them with care).
-- Permissions: `storage`, `offscreen` (Chrome's on-device model) and the four feed sites; provider hosts are asked for
+- Permissions: `storage` and the four feed sites; provider hosts are asked for
   only when you choose that provider. See [PRIVACY.md](PRIVACY.md).
 
 ## Known limits

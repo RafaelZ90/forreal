@@ -19,7 +19,20 @@
     }
     return null;
   };
-  const txt = (el) => (el ? (el.innerText || el.textContent || "").trim() : "");
+  // Rendering-independent text helpers: never innerText, which changes when a post is folded (display: none)
+  // and forces a layout on every call. lines() gives each text run its own line, like the visible lines.
+  function lines(el) {
+    const out = [];
+    if (!el) return out;
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const t = n.data.replace(/\s+/g, " ").trim();
+      if (t && !(n.parentElement && n.parentElement.closest(".unspin-host"))) out.push(t);
+    }
+    return out;
+  }
+  const txt = (el) => lines(el).join("\n");
+  const flat = (el) => (el ? (el.textContent || "").replace(/\s+/g, " ").trim() : "");
 
   // Text with line breaks taken from the markup (<br>, block elements), not from rendering, so it reads the
   // same whether the post is visible or folded away. Buttons ("…more") are skipped.
@@ -45,16 +58,20 @@
   // Fallback: the element inside the post with the most direct text.
   function largestTextBlock(post) {
     let best = null, bestLen = 0;
-    post.querySelectorAll("span[dir], div[dir], p, span.break-words, div.break-words").forEach((el) => {
-      const len = txt(el).length;
+    post.querySelectorAll("span[dir], div[dir], div[lang], p, span.break-words, div.break-words").forEach((el) => {
+      if (el.closest(".unspin-host, button, a, [role='button']")) return;
+      const len = flat(el).length;
       if (len > bestLen && el.querySelectorAll("button, img, video").length < 3) { best = el; bestLen = len; }
     });
     return bestLen > 80 ? best : null;
   }
 
   function anchors(el) {
-    return Array.from(el.querySelectorAll("a[href]")).map((a) => ({ href: a.href, text: txt(a).slice(0, 140) }));
+    return Array.from(el.querySelectorAll("a[href]")).map((a) => ({ href: a.href, text: flat(a).slice(0, 140) }));
   }
+
+  // "Promoted"/"Ad" in the languages the sites are used in most. Exact leaf text only, so a post that says "ad" is no ad.
+  const AD_LABEL = /^(ad|promoted|sponsored|anzeige|gesponsert|werbung|publicidad|promocionado|sponsoris[ée]|sponsorizzato|gesponsord|promowane|reklama)$/i;
 
   const linkedin = {
     id: "linkedin",
@@ -98,9 +115,9 @@
       ])).split("\n")[0];
     },
     promoted(post) {
-      if (Array.from(post.querySelectorAll("span, p")).some((el) => el.children.length === 0 && /^(promoted|gesponsert|anzeige|sponsored)$/i.test(txt(el)))) return true;
+      if (Array.from(post.querySelectorAll("span, p")).some((el) => el.children.length === 0 && AD_LABEL.test(flat(el)))) return true;
       const sub = q(post, [".update-components-actor__sub-description", ".update-components-actor__description", ".feed-shared-actor__sub-description"]);
-      return /\b(promoted|gesponsert|sponsored)\b/i.test(txt(sub));
+      return /\b(promoted|gesponsert|sponsored|anzeige)\b/i.test(flat(sub));
     },
     links(post, textEl) {
       const out = textEl ? anchors(textEl) : [];
@@ -109,17 +126,18 @@
         let host = "";
         try { host = new URL(a.href).hostname; } catch (e) { return; }
         if (/(^|\.)linkedin\.com$/.test(host) || out.some((l) => l.href === a.href)) return;
-        const title = txt(a).split("\n").map((t) => t.trim()).find((t) => t.length > 8 && !/^(learn more|mehr erfahren|apply|register|sign up)$/i.test(t)) || "";
+        // the card's title: a line of words, not the bare domain or a button label
+        const title = lines(a).find((t) => t.length > 8 && !/^[\w.-]+\.[a-z]{2,}(\/\S*)?$/i.test(t) && !/^(learn more|mehr erfahren|apply|apply now|register|sign up|jetzt bewerben|anmelden)$/i.test(t)) || "";
         out.push({ href: a.href, title, text: title });
       });
       const card = q(post, [".update-components-article", ".feed-shared-article", ".update-components-entity", "[data-view-name='feed-article']"]);
       if (card) {
         const a = card.querySelector("a[href]");
-        const title = txt(q(card, [".update-components-article__title", ".feed-shared-article__title", ".update-components-entity__title", "h2", "h3"]));
+        const title = flat(q(card, [".update-components-article__title", ".feed-shared-article__title", ".update-components-entity__title", "h2", "h3"]));
         if (a) out.unshift({ href: a.href, title, text: title });
       }
       const doc = q(post, [".update-components-document__container", ".feed-shared-document"]);
-      if (doc) out.push({ href: location.href, title: txt(q(doc, ["h2", "h3", ".document-s-container__title"])) || "Attached document" });
+      if (doc) out.push({ href: location.href, title: flat(q(doc, ["h2", "h3", ".document-s-container__title"])) || "Attached document" });
       return out;
     },
   };
@@ -127,20 +145,21 @@
   const x = {
     id: "x",
     host: /(^|\.)(x|twitter)\.com$/,
-    posts: ["article[data-testid='tweet']"],
-    text: (post) => post.querySelector("[data-testid='tweetText']"),
+    posts: ["article[data-testid='tweet']", "[data-testid='cellInnerDiv'] article[role='article']"],
+    // tweet text carries a lang attribute even when its test id changes
+    text: (post) => post.querySelector("[data-testid='tweetText']") || post.querySelector("div[lang][dir]") || largestTextBlock(post),
     avatar: (post) => post.querySelector("[data-testid='Tweet-User-Avatar']"),
     name: (post) => post.querySelector("[data-testid='User-Name']"),
     author: (post) => txt(post.querySelector("[data-testid='User-Name']")).split("\n")[0],
     promoted: (post) => !!post.querySelector("[data-testid='placementTracking']") ||
-      Array.from(post.querySelectorAll("span")).some((s) => s.children.length === 0 && /^(Ad|Promoted|Anzeige|Gesponsert|Werbung|Sponsored|Publicidad|Sponsorisé)$/.test(txt(s))),
+      Array.from(post.querySelectorAll("span")).some((s) => s.children.length === 0 && AD_LABEL.test(flat(s))),
     links(post, textEl) {
       const out = textEl ? anchors(textEl).filter((l) => !/\/(hashtag|search)|^https?:\/\/(x|twitter)\.com\/[^/]+\/?$/.test(l.href)) : [];
       const card = post.querySelector("[data-testid='card.wrapper']");
       if (card) {
         const a = card.querySelector("a[href]");
-        const spans = Array.from(card.querySelectorAll("span")).map(txt).filter((t) => t.length > 12);
-        if (a) out.unshift({ href: a.href, title: spans[0] || txt(a), text: spans[0] || "" });
+        const spans = Array.from(card.querySelectorAll("span")).filter((e) => !e.querySelector("span")).map(flat).filter((t) => t.length > 12);
+        if (a) out.unshift({ href: a.href, title: spans[0] || flat(a), text: spans[0] || "" });
       }
       return out;
     },
@@ -149,7 +168,7 @@
   const bsky = {
     id: "bsky",
     host: /(^|\.)bsky\.app$/,
-    posts: ["[data-testid^='feedItem-by-']", "[data-testid^='postThreadItem-by-']"],
+    posts: ["[data-testid^='feedItem-by-']", "[data-testid^='postThreadItem-by-']", "[data-testid^='postThreadItem-']"],
     text: (post) => post.querySelector("[data-testid='postText']") || largestTextBlock(post),
     // The separator line is drawn on the post's inner block: put the verdict inside it, below the line.
     mount: (post) => Array.from(post.children).find((c) => !c.classList.contains("unspin-host")) || post,
@@ -186,11 +205,12 @@
   root.Unspin.findPosts = function (site, scope) {
     const seen = new Set();
     const out = [];
+    const any = site._any || (site._any = site.posts.join(","));
     for (const sel of site.posts) {
       scope.querySelectorAll(sel).forEach((el) => {
         if (seen.has(el)) return;
         // keep the outermost match only (LinkedIn nests reshared updates)
-        const outer = el.parentElement && el.parentElement.closest(site.posts.join(","));
+        const outer = el.parentElement && el.parentElement.closest(any);
         if (outer && scope.contains(outer)) return;
         seen.add(el);
         out.push(el);

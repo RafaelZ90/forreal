@@ -4,7 +4,7 @@ ForReal has no server and collects nothing. It reads the posts shown on linkedin
 in your browser to judge them.
 
 - **Automatic and Rules only (default):** everything happens on your computer. Chrome's built-in model, when used, runs
-  on the device.
+  on the device, inside the extension's background worker.
 - **Your own provider (Claude, OpenRouter, Ollama), only if you choose it:** the text of posts near the screen, the
   author's name and the post's links are sent to that provider with your key, and to nobody else. Its own privacy terms
   apply.

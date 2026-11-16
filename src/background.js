@@ -18,34 +18,15 @@ if (typeof importScripts === "function") {
 }
 
 // ---------- Chrome's on-device model ----------
-// Called directly when this context exposes LanguageModel, otherwise through a hidden offscreen page.
-let offscreenReady = null;
-async function viaOffscreen(msg) {
-  if (!api.offscreen) return { ok: false, error: "unavailable" };
-  if (!offscreenReady) {
-    offscreenReady = (async () => {
-      const has = api.offscreen.hasDocument ? await api.offscreen.hasDocument() : false;
-      if (!has) {
-        await api.offscreen.createDocument({
-          url: "src/offscreen/ai.html",
-          reasons: ["DOM_PARSER"],
-          justification: "Runs Chrome's built-in on-device language model, which is only exposed to window contexts.",
-        });
-      }
-    })().catch((e) => { offscreenReady = null; throw e; });
-  }
-  await offscreenReady;
-  return api.runtime.sendMessage(Object.assign({ target: "offscreen-ai" }, msg));
-}
+// Used only where this worker itself exposes LanguageModel (the Prompt API). There is deliberately no offscreen
+// document: no offscreen reason covers "run a language model", and a mislabelled reason is a store rejection.
+// Where the worker has no model, the rules write the lines (the documented fallback).
 async function nanoStatus() {
-  if (globalThis.LanguageModel) return globalThis.UnspinChromeAI.status();
-  try { const r = await viaOffscreen({ op: "status" }); return r && r.ok ? r.r : "unavailable"; } catch (e) { return "unavailable"; }
+  return globalThis.LanguageModel ? globalThis.UnspinChromeAI.status() : "unavailable";
 }
 async function nanoDecode(post, hint, spice) {
-  if (globalThis.LanguageModel) return globalThis.UnspinChromeAI.decode(post, hint, spice);
-  const r = await viaOffscreen({ op: "decode", post: { text: post.text }, hint, spice });
-  if (!r || !r.ok) throw new Error((r && r.error) || "On-device AI did not answer.");
-  return r.r;
+  if (!globalThis.LanguageModel) throw new Error("On-device AI is not available in the background on this browser.");
+  return globalThis.UnspinChromeAI.decode({ text: post.text }, hint, spice);
 }
 let nanoChain = Promise.resolve(); // the on-device model takes one post at a time
 const nanoQueued = (fn) => { const p = nanoChain.then(fn, fn); nanoChain = p.catch(() => {}); return p; };
@@ -120,7 +101,8 @@ async function callAnthropic(post, cfg) {
     },
     body: JSON.stringify({
       model: cfg.models.anthropic,
-      max_tokens: 400,
+      // Current models think by default; leave room so the JSON is never cut off (effort "low" keeps it short).
+      max_tokens: 1500,
       system: systemPrompt(cfg.spice),
       messages: [{ role: "user", content: userPrompt(post) }],
       output_config: { effort: "low", format: { type: "json_schema", schema: SCHEMA } },
@@ -129,6 +111,7 @@ async function callAnthropic(post, cfg) {
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error("Anthropic " + res.status + ": " + ((body.error && body.error.message) || res.statusText));
   if (body.stop_reason === "refusal") throw new Error("Model declined this post.");
+  if (body.stop_reason === "max_tokens") throw new Error("Model answer was cut off; the rules' lines stay.");
   const text = (body.content || []).filter((b) => b.type === "text").map((b) => b.text).join("");
   return JSON.parse(text);
 }
@@ -304,6 +287,23 @@ async function addStats(d) {
   await api.storage.local.set({ stats: st });
 }
 
+// Messages come from our own content scripts, but those read hostile pages: check shapes and bound sizes anyway.
+const str = (x, n) => (typeof x === "string" ? x.slice(0, n) : "");
+function cleanPost(p) {
+  if (!p || typeof p !== "object" || typeof p.text !== "string" || typeof p.hash !== "string") return null;
+  return {
+    site: str(p.site, 20), author: str(p.author, 120), text: p.text.slice(0, 20000), hash: p.hash.slice(0, 32),
+    links: (Array.isArray(p.links) ? p.links : []).slice(0, 20).filter((l) => l && typeof l.href === "string")
+      .map((l) => ({ href: l.href.slice(0, 2000), title: str(l.title, 200), text: str(l.text, 200) })),
+    hint: p.hint && typeof p.hint === "object" ? { category: str(p.hint.category, 20), label: str(p.hint.label, 40) } : null,
+  };
+}
+const num = (x) => (typeof x === "number" && isFinite(x) && x >= 0 ? Math.min(x, 1e5) : 0);
+function cleanStats(d) {
+  if (!d || typeof d !== "object" || !CATEGORIES.includes(d.category)) return null;
+  return { words: num(d.words), minutes: num(d.minutes), collapsed: !!d.collapsed, fluff: !!d.fluff, worth: !!d.worth, category: d.category };
+}
+
 api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || !msg.type || !sender || sender.id !== api.runtime.id) return false;
   const fromPage = !sender.tab; // the extension's own pages (popup, settings), not a content script on a feed site
@@ -318,11 +318,15 @@ api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if ((msg.type === "test" || msg.type === "clearCache") && !fromPage) return false;
   if (msg.type === "analyze") {
-    analyze(msg.post).then(sendResponse, (e) => sendResponse({ error: String(e.message || e) }));
+    const post = cleanPost(msg.post);
+    if (!post) return false;
+    analyze(post).then(sendResponse, (e) => sendResponse({ error: String(e.message || e) }));
     return true;
   }
   if (msg.type === "stats") {
-    addStats(msg.data).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
+    const data = cleanStats(msg.data);
+    if (!data) return false;
+    addStats(data).then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
     return true;
   }
   if (msg.type === "test") {

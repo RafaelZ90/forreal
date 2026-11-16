@@ -9,7 +9,6 @@
   if (!U || window.__unspinStarted) return;
   window.__unspinStarted = true;
 
-  const WORTH_AT = 65; // signal from which a post is "Worth it"
   let cfg = null;
   const counted = new Set(); // hashes already in today's stats
   const userFold = new Map(); // hash -> folded (the reader's choice wins)
@@ -39,40 +38,14 @@
     return site ? [{ el: document, site }] : [];
   }
 
-  function tierOf(v) {
-    if (v.kind) return "kind";
-    if (v.signal >= WORTH_AT) return "worth";
-    if (v.signal < cfg.threshold) return "skip";
-    return "maybe";
-  }
-  // Fold only what is certainly not worth it, so nobody misses a post they wanted: ads, engagement bait,
-  // or a very low signal. Other Skips keep their label but stay open. ("maybe" mode is the reader's explicit choice.)
-  function autoFold(v, tier) {
-    if (cfg.collapse === "never" || tier === "kind" || tier === "worth") return false;
-    if (v.category === "ad") return true;
-    if (cfg.collapse === "maybe") return true;
-    if (tier !== "skip" || (v.worth && v.worth.href)) return false;
-    return v.category === "bait" || v.signal < 15;
-  }
+  const tierOf = (v) => U.tierOf(v, cfg);
+  const autoFold = (v, tier) => U.autoFold(v, tier, cfg);
 
   function verdictOf(rec) {
     let v = rec.local;
-    if (overrides.has(rec.hash)) v = U.relabel(v, overrides.get(rec.hash), cfg.spice);
-    if (rec.ai) {
-      const base = v;
-      v = Object.assign({}, v, { roast: rec.ai.roast || v.roast, gist: rec.ai.gist || v.gist });
-      // Own-provider engines may re-label, but the post's text can steer the model, so their verdict is held to the
-      // rules: a sponsored post stays an ad, the score moves at most 25 points, and the link is always the rules' link.
-      if (rec.ai.category && !overrides.has(rec.hash) && U.CATS[rec.ai.category] && base.category !== "ad") {
-        const sig = typeof rec.ai.signal === "number" ? Math.max(base.signal - 25, Math.min(base.signal + 25, rec.ai.signal)) : base.signal;
-        const aiWorth = rec.ai.worth, same = aiWorth && base.worth && aiWorth.href && aiWorth.href === base.worth.href;
-        Object.assign(v, {
-          category: rec.ai.category, label: U.CATS[rec.ai.category].label, kind: !!U.CATS[rec.ai.category].kind, signal: sig,
-          worth: same ? Object.assign({}, base.worth, { title: aiWorth.title || base.worth.title }) : base.worth,
-        });
-      }
-    }
-    return v;
+    const corrected = overrides.has(rec.hash);
+    if (corrected) v = U.relabel(v, overrides.get(rec.hash), cfg.spice);
+    return rec.ai ? U.mergeAI(v, rec.ai, { corrected }) : v; // AI answers are held to the rules (policy.js)
   }
 
   function apply(rec) {
@@ -217,17 +190,27 @@
     if (cfg.engine !== "local") io.observe(post);
   }
 
+  const SCAN_BUDGET_MS = 30;
+  let scanMs = 0, scanMax = 0; // for the page status (performance checks)
   function scan() {
     pending = false;
     if (!cfg || !cfg.enabled) return;
-    for (const { el, site } of scopes()) {
+    const t0 = performance.now();
+    // Time-sliced: at most ~30 ms per run, in page order (top first), the rest in the next run, so a long feed
+    // never blocks scrolling. Unchanged posts cost only a text comparison.
+    let more = false;
+    outer: for (const { el, site } of scopes()) {
       if (!site || cfg.sites[site.id] === false) continue;
-      U.findPosts(site, el).forEach((p) => {
+      for (const p of U.findPosts(site, el)) {
+        if (performance.now() - t0 > SCAN_BUDGET_MS) { more = true; break outer; }
         try { processPost(site, p); } catch (e) { console.debug("[forreal]", e); }
-      });
+      }
     }
+    if (more) { pending = true; setTimeout(scan, 16); }
     records.forEach((rec) => { if (!rec.post.isConnected) records.delete(rec.post); });
     askVisible();
+    scanMs = performance.now() - t0;
+    scanMax = Math.max(scanMax, scanMs);
   }
 
   function teardown() {
@@ -254,6 +237,18 @@
   // Follow the site's light/dark switch.
   const themeWatch = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
   if (themeWatch && themeWatch.addEventListener) themeWatch.addEventListener("change", () => records.forEach((r) => r.strip.retheme()));
+
+  // The popup asks what was found on this tab (a feed with no posts usually means the markup changed).
+  const startedAt = Date.now();
+  api.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (!msg || msg.type !== "pageStatus" || !sender || sender.id !== api.runtime.id || sender.tab) return false;
+    const sc = scopes()[0];
+    let folded = 0;
+    records.forEach((r) => { if (r.box.hasAttribute("data-unspin-fold")) folded++; });
+    sendResponse({ site: sc && sc.site ? sc.site.id : "", enabled: !!(cfg && cfg.enabled && sc && sc.site && cfg.sites[sc.site.id] !== false),
+      posts: records.size, folded, age: Date.now() - startedAt, scanMs: Math.round(scanMs * 10) / 10, scanMax: Math.round(scanMax) });
+    return false;
+  });
 
   api.storage.onChanged.addListener((changes, area) => {
     if (area !== "sync") return;
