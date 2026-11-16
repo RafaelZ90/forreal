@@ -22,7 +22,8 @@
     if (v.category === "ad") return true;
     if (collapse === "maybe") return true;
     if (tier !== "skip" || (v.worth && v.worth.href)) return false;
-    return v.category === "bait" || v.signal < 15;
+    // Bait, or a post stacked with bait phrases ("follow for more", "repost to help", "comment X below").
+    return v.category === "bait" || (v.scores && v.scores.bait >= 8) || v.signal < 15;
   }
 
   // An AI answer may re-word the two lines. Own-provider engines may also re-label, but the post's text can steer the

@@ -1,1 +1,170 @@
-[]
+[
+ {
+  "note": "comment-a-word bait with free guide",
+  "text": "I spent 10 years learning how to write cold emails that get replies. I put everything into a free 30-page playbook. Comment PLAYBOOK below and I'll send it to you. ♻️ Repost to help your network.",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "agree? one-liner bait",
+  "text": "Hard truth: your network is your net worth. Most people will never understand this. Agree?",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "let that sink in",
+  "text": "Your boss will forget your overtime. Your family will not. Let that sink in. Read that again. Follow me for more.",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "type yes bait",
+  "text": "Type YES in the comments if you believe kindness is a leadership skill. Let's see how many of us there are! 👇👇👇",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "promoted post folds",
+  "text": "Meet the CRM your sales team will actually use. Set up in 5 minutes, free for 14 days. Learn more.",
+  "links": [],
+  "promoted": true,
+  "expect": "ad",
+  "expect_fold": true
+ },
+ {
+  "note": "promoted post that pretends to be a paper still folds",
+  "text": "New study: 87% of finance leaders say manual reporting costs them a day a week. Download the report to see how top teams automate it.",
+  "links": [
+   {
+    "href": "https://www.example-vendor.com/report",
+    "title": "The State of Finance Automation"
+   }
+  ],
+  "promoted": true,
+  "expect": "ad",
+  "expect_fold": true
+ },
+ {
+  "note": "humblebrag award",
+  "text": "Humbled and honored to be named one of the Top 40 Under 40 in marketing this year. 🏆 None of this would be possible without my amazing team, my mentors and my family. Grateful for this recognition! #Blessed #Award #Leadership #Marketing #Growth",
+  "links": [],
+  "expect": "brag",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "new job announcement",
+  "text": "I'm happy to share that I'm starting a new position as Senior Manager, Partnerships at Northwind! Thank you to everyone who supported me on this journey. Excited for this new chapter! 🚀",
+  "links": [],
+  "expect": "job",
+  "expect_tier": "skip",
+  "expect_no_fold": true
+ },
+ {
+  "note": "broetry",
+  "text": "I got rejected.\n\n47 times.\n\nBy investors.\n\nBy customers.\n\nBy my own team.\n\nToday?\n\nWe hit $1M ARR.\n\nNever give up.\n\nNever.",
+  "links": [],
+  "expect_not": [
+   "insight",
+   "paper",
+   "event",
+   "release"
+  ],
+  "expect_tier": "skip"
+ },
+ {
+  "note": "AI hype listicle",
+  "text": "AI just changed EVERYTHING. 🤯 You're falling behind if you're not using these 7 AI tools:\n\n1. Tool A for emails\n2. Tool B for slides\n3. Tool C for research\n4. Tool D for video\n5. Tool E for notes\n\nFollow me for more AI tips! ♻️ Repost to help others.",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "fake life lesson with sales funnel",
+  "text": "My 6-year-old taught me the most important lesson about B2B sales yesterday. She wanted ice cream. She asked. I said no. She asked again, differently. And again. By the fourth time, I said yes. Persistence is everything. If you want to learn my 5-step persistence framework, DM me 'FRAMEWORK'.",
+  "links": [],
+  "expect_not": [
+   "insight",
+   "paper",
+   "event",
+   "personal"
+  ],
+  "expect_tier": "skip"
+ },
+ {
+  "note": "coach sales pitch",
+  "text": "Most founders are leaving money on the table. In my 8-week coaching program I help you 10x your pipeline with a proven system. Only 5 spots left this month. Book a call via the link in my bio.",
+  "links": [],
+  "expect": "sales",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "discount code",
+  "text": "Black Friday: 40% off my course on personal branding with code BRAND40. Last chance, offer ends Sunday!",
+  "links": [],
+  "expect": "sales",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "unpopular opinion with 'change my mind' is a hot take: Maybe, stays open",
+  "text": "Unpopular opinion: degrees are useless in 2026. Nobody cares where you studied. Change my mind. Thoughts?",
+  "links": [],
+  "expect": "take",
+  "expect_no_fold": true
+ },
+ {
+  "note": "motivational quote with hashtags",
+  "text": "Success is not final, failure is not fatal. It is the courage to continue that counts. 💪🔥✨🙌 #Motivation #Mindset #Success #Leadership #Monday #Hustle #Growth",
+  "links": [],
+  "expect_not": [
+   "insight",
+   "paper",
+   "event",
+   "release"
+  ],
+  "expect_tier": "skip"
+ },
+ {
+  "note": "generic tips listicle",
+  "text": "5 habits of highly productive people:\n\n✅ They wake up early\n✅ They plan their day\n✅ They say no\n✅ They exercise\n✅ They read every day\n\nWhich one do you do? 👇",
+  "links": [],
+  "expect_tier": "skip"
+ },
+ {
+  "note": "engagement pod style repost ask",
+  "text": "If this post gets 1,000 likes I'll share my full Notion template for free. Like and comment 'NOTION' to get it. Share with your network!",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "x-style ratio bait",
+  "text": "Name one thing that's overrated. I'll go first: meetings. 👇",
+  "links": [],
+  "expect_not": [
+   "insight",
+   "paper",
+   "event",
+   "release"
+  ]
+ },
+ {
+  "note": "vendor webinar hype that already happened is not an event",
+  "text": "What an amazing webinar we had yesterday! 🎉 Over 500 attendees joined to learn how AI is revolutionizing customer service. Thank you to our incredible speakers. Missed it? DM me for the recording!",
+  "links": [],
+  "expect_not": [
+   "event"
+  ],
+  "expect_tier": "skip"
+ },
+ {
+  "note": "follower milestone",
+  "text": "We just crossed 50k followers! 🎉🎉 Thank you all for being part of this journey. So proud of what we've built together. Here's to the next 50k! 🚀",
+  "links": [],
+  "expect": "brag",
+  "expect_tier": "skip"
+ }
+]

@@ -1,1 +1,398 @@
-[]
+[
+ {
+  "note": "paper with arXiv link, written excitedly",
+  "text": "So excited to finally share this one! 🎉 Our new preprint shows that small language models fine-tuned on 2,000 curated examples match much larger ones on clinical note summarisation. We release the data and code. Feedback very welcome!",
+  "links": [
+   {
+    "href": "https://arxiv.org/abs/2611.01234",
+    "text": "arxiv.org/abs/2611.01234"
+   }
+  ],
+  "expect": "paper",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "paper accepted, humbled wording",
+  "text": "Humbled and grateful: our paper on supply chain resilience was accepted at Management Science. We analyse 14,000 suppliers over ten years and find that dual sourcing cuts disruption losses by a fifth, but only for firms with long contracts. Huge thanks to my co-authors!",
+  "links": [
+   {
+    "href": "https://pubsonline.informs.org/doi/10.1287/mnsc.2026.0001",
+    "text": "pubsonline.informs.org"
+   }
+  ],
+  "expect": "paper",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "thesis defended, with link",
+  "text": "Yesterday I defended my PhD thesis on groundwater recharge in semi-arid regions. Four years, three field campaigns and one very patient supervisor. The full dissertation is open access on the university repository.",
+  "links": [
+   {
+    "href": "https://repository.example.edu/handle/123/4567",
+    "text": "Groundwater recharge in semi-arid regions"
+   }
+  ],
+  "expect_not": [
+   "brag",
+   "job"
+  ],
+  "expect_no_fold": true
+ },
+ {
+  "note": "working paper on SSRN, short",
+  "text": "New working paper with two colleagues: do analyst downgrades predict layoffs? Using 9,000 firm-years we find they do, with a lag of two quarters. Comments welcome.",
+  "links": [
+   {
+    "href": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5000001",
+    "text": "ssrn.com"
+   }
+  ],
+  "expect": "paper",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "paper on X with doi only in text",
+  "text": "Our meta-analysis of 87 studies on four-day work weeks is out: productivity holds, sick days drop by 20%. Open access: doi.org/10.1016/j.example.2026.101",
+  "links": [
+   {
+    "href": "https://doi.org/10.1016/j.example.2026.101",
+    "text": "doi.org/10.1016/j.example.2026.101"
+   }
+  ],
+  "expect": "paper",
+  "expect_tier": "worth"
+ },
+ {
+  "note": "paper thread with 🧵 and agree? at the end must not become bait",
+  "text": "New paper 🧵 We ran a field experiment with 1,200 delivery riders and find that showing expected earnings before a shift raises take-up by 14%. Platforms hide this number. Should they be required to show it? Agree?",
+  "links": [
+   {
+    "href": "https://osf.io/abcd1/",
+    "text": "osf.io/abcd1"
+   }
+  ],
+  "expect": "paper",
+  "expect_no_fold": true
+ },
+ {
+  "note": "dataset release",
+  "text": "We are releasing CityNoise, a dataset of 40,000 hours of labelled street audio from twelve cities, under CC-BY. It comes with baselines for event detection and a leaderboard.",
+  "links": [
+   {
+    "href": "https://huggingface.co/datasets/example/citynoise",
+    "text": "huggingface.co/datasets/example/citynoise"
+   }
+  ],
+  "expect_not": [
+   "hype",
+   "sales",
+   "brag"
+  ],
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "book chapter / report link",
+  "text": "Our report on heat-related deaths in European cities is out today. Across 30 cities, adaptation plans that include shading and night-time cooling centres cut excess deaths by roughly a third. The full report and the city-level data are free to download.",
+  "links": [
+   {
+    "href": "https://www.example-institute.org/reports/heat-2026.pdf",
+    "text": "Heat and health in European cities"
+   }
+  ],
+  "expect_not": [
+   "bait",
+   "sales",
+   "brag",
+   "hype"
+  ],
+  "expect_no_fold": true
+ },
+ {
+  "note": "workshop with registration link and lots of emojis",
+  "text": "🚀🚀 Free workshop alert! 🎉 Join us on Thursday 3 December at 4 pm CET for a hands-on session on survival analysis in R. Bring a laptop. Register here 👉",
+  "links": [
+   {
+    "href": "https://lu.ma/survival-r",
+    "text": "lu.ma/survival-r"
+   }
+  ],
+  "expect": "event",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "call for papers",
+  "text": "Call for papers: the 3rd Workshop on Human-AI Collaboration in Healthcare at the spring conference. Deadline for submissions is 15 January. Short papers (4 pages) and demos are welcome.",
+  "links": [
+   {
+    "href": "https://hai-health.example.org/cfp",
+    "text": "hai-health.example.org/cfp"
+   }
+  ],
+  "expect": "event",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "webinar promoted by vendor still an event if not sponsored",
+  "text": "Join our free webinar next Tuesday at 11 am EST: how three hospital networks cut no-show rates using text reminders. Real numbers, no slides about us. Sign up below.",
+  "links": [
+   {
+    "href": "https://www.eventbrite.com/e/no-show-webinar-1234",
+    "text": "eventbrite.com"
+   }
+  ],
+  "expect": "event",
+  "expect_no_fold": true
+ },
+ {
+  "note": "meetup tonight, no link",
+  "text": "Reminder: the Rust meetup is tonight at 7 pm at the library on Hill Street. Two talks: async without tears, and building a tiny database. Pizza provided, everyone welcome, sign up on the meetup page so we know how many to expect.",
+  "links": [],
+  "expect": "event",
+  "expect_no_fold": true
+ },
+ {
+  "note": "conference talk recording",
+  "text": "The recording of my talk at the PyData conference is up: how we cut our warehouse bill by 60% by moving cold tables to Parquet on object storage. Slides and code are linked under the video.",
+  "links": [
+   {
+    "href": "https://www.youtube.com/watch?v=abc123",
+    "text": "Cutting the warehouse bill by 60%"
+   }
+  ],
+  "expect_not": [
+   "brag",
+   "bait",
+   "sales"
+  ],
+  "expect_no_fold": true
+ },
+ {
+  "note": "summer school application",
+  "text": "Applications are open for our summer school on computational social science, 6 to 17 July, with full scholarships for 20 participants. Apply by 1 March.",
+  "links": [
+   {
+    "href": "https://css-summer.example.org/apply",
+    "text": "css-summer.example.org"
+   }
+  ],
+  "expect": "event",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "open source library release on github",
+  "text": "I just released v1.0 of tinyqueue, a dependency-free job queue for Postgres. It handles retries, priorities and scheduled jobs in under 800 lines. MIT licensed.",
+  "links": [
+   {
+    "href": "https://github.com/example/tinyqueue",
+    "text": "github.com/example/tinyqueue"
+   }
+  ],
+  "expect": "release",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "browser extension launch with hype words",
+  "text": "We just launched our browser extension that summarises long PDFs locally, no cloud and no account. It is free and open source. This changes everything for my reading list.",
+  "links": [
+   {
+    "href": "https://chromewebstore.google.com/detail/example/abcdef",
+    "text": "Chrome Web Store"
+   }
+  ],
+  "expect": "release",
+  "expect_no_fold": true
+ },
+ {
+  "note": "CLI tool on npm",
+  "text": "Shipped: a tiny CLI that diffs two CSV files by key and prints changed cells in colour. npm install -g csvdelta. Handles 10 million rows in about a minute.",
+  "links": [
+   {
+    "href": "https://www.npmjs.com/package/csvdelta",
+    "text": "npmjs.com/package/csvdelta"
+   }
+  ],
+  "expect": "release",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "AI tool release with code is not hype",
+  "text": "We open-sourced our evaluation harness for retrieval-augmented generation agents. It runs 14 benchmarks, logs every prompt and costs about $3 per full run. Repo and docs below.",
+  "links": [
+   {
+    "href": "https://github.com/example/rag-eval",
+    "text": "github.com/example/rag-eval"
+   }
+  ],
+  "expect": "release",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "product update without link, specific",
+  "text": "Version 4.2 is rolling out today: offline mode for the mobile app, end-to-end encrypted notes, and export to Markdown. Update from your app store.",
+  "links": [],
+  "expect": "release",
+  "expect_no_fold": true
+ },
+ {
+  "note": "hiring with apply link",
+  "text": "We're hiring a senior data engineer (remote, EU time zones, €85–100k). You'll own our ingestion pipeline: Kafka, dbt and Postgres. Apply here:",
+  "links": [
+   {
+    "href": "https://jobs.example.com/senior-data-engineer",
+    "text": "jobs.example.com"
+   }
+  ],
+  "expect": "hiring",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "PhD positions",
+  "text": "Two fully funded PhD positions in my group on machine learning for climate models, starting in October. Deadline 31 January. Please share with students who might be interested.",
+  "links": [
+   {
+    "href": "https://www.example.edu/jobs/phd-ml-climate",
+    "text": "example.edu/jobs"
+   }
+  ],
+  "expect_not": [
+   "bait",
+   "brag"
+  ],
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "postdoc opening no link",
+  "text": "Open position: a two-year postdoc in computational linguistics in our lab, starting spring. Topics include low-resource speech recognition. Salary at the national scale, apply by 15 February via the university portal.",
+  "links": [],
+  "expect": "hiring",
+  "expect_no_fold": true
+ },
+ {
+  "note": "hiring with emojis and repost ask is still hiring",
+  "text": "🚨 We're hiring! 🚨 Looking for a product designer to join our team in Lisbon. Hybrid, 3 days in the office. ♻️ Repost to help me reach the right person!",
+  "links": [
+   {
+    "href": "https://careers.example.pt/product-designer",
+    "text": "careers.example.pt"
+   }
+  ],
+  "expect": "hiring",
+  "expect_no_fold": true
+ },
+ {
+  "note": "long data-backed argument",
+  "text": "We looked at 3 years of support tickets to understand churn. The surprise: customers who filed one ticket churned less than those who filed none, because silent customers never told us what was wrong. However, after the third ticket churn doubled. Therefore we now call every customer after their second ticket. In the first quarter this cut churn from 4.1% to 3.2% per month, measured against a holdout group of 2,000 accounts. The lesson for us was that tickets are a signal of engagement until they are a signal of frustration, and the turning point is measurable.",
+  "links": [],
+  "expect": "insight",
+  "expect_no_fold": true
+ },
+ {
+  "note": "technical explanation with benchmark",
+  "text": "Why our p99 latency dropped from 900 ms to 140 ms: the database was fine, the connection pool was not. Every request opened a TLS connection because the pool was sized below our concurrency. We measured with a load test at 2,000 requests per second, raised the pool from 20 to 120, and pinned connections per worker. In contrast to what we expected, CPU use went down because the handshakes were the expensive part. The benchmark scripts are in our engineering blog post.",
+  "links": [
+   {
+    "href": "https://engineering.example.com/p99-latency",
+    "text": "Why our p99 dropped"
+   }
+  ],
+  "expect_not": [
+   "bait",
+   "hype",
+   "lesson",
+   "brag"
+  ],
+  "expect_no_fold": true
+ },
+ {
+  "note": "grief post",
+  "text": "My father passed away last Sunday after a long illness. He taught me to fix bikes and to listen before speaking. I will be offline for a few weeks. Thank you for the kind messages.",
+  "links": [],
+  "expect": "personal",
+  "expect_tier": "kind",
+  "expect_no_fold": true
+ },
+ {
+  "note": "open to work",
+  "text": "After eight years at a logistics startup I was laid off on Monday along with most of the data team. I'm looking for a new role in analytics engineering, remote or in Berlin. Any intro is hugely appreciated.",
+  "links": [],
+  "expect": "personal",
+  "expect_no_fold": true
+ },
+ {
+  "note": "burnout post",
+  "text": "A year ago I hit burnout and stopped working for four months. I'm writing this because I wish someone had told me earlier that sleeping ten hours and still being tired is not normal. If that's you, please talk to a doctor.",
+  "links": [],
+  "expect": "personal",
+  "expect_no_fold": true
+ },
+ {
+  "note": "free course from a university is not sales",
+  "text": "Our free online course on causal inference starts again on 12 January. Eight weeks, two hours a week, with exercises in R and Python and no paywall. Enrolment is open now.",
+  "links": [
+   {
+    "href": "https://www.example.edu/courses/causal-inference",
+    "text": "Causal inference online"
+   }
+  ],
+  "expect_not": [
+   "sales",
+   "bait"
+  ],
+  "expect_no_fold": true
+ },
+ {
+  "note": "paper link and 'link in comments' style",
+  "text": "Our new study on microplastics in drinking water is published in Nature Water today. We tested 300 samples from 40 countries and found particles in 81%. Link to the paper in the comments.",
+  "links": [],
+  "expect": "paper",
+  "expect_no_fold": true
+ },
+ {
+  "note": "job opening with sales vocabulary",
+  "text": "We're hiring an account executive for our DACH team. You'll grow our business with mid-sized manufacturers. Base plus commission, Munich or remote. Apply below or DM me with questions.",
+  "links": [
+   {
+    "href": "https://jobs.example.de/ae-dach",
+    "text": "jobs.example.de"
+   }
+  ],
+  "expect": "hiring",
+  "expect_no_fold": true
+ },
+ {
+  "note": "workshop with 'limited spots' is still an event",
+  "text": "Limited spots: our hands-on workshop on accessibility testing for designers, Friday 9 May, 2 to 5 pm, online and free. We'll test real apps with screen readers together. Register by Wednesday.",
+  "links": [
+   {
+    "href": "https://www.meetup.com/a11y-designers/events/123/",
+    "text": "meetup.com"
+   }
+  ],
+  "expect": "event",
+  "expect_no_fold": true
+ },
+ {
+  "note": "tool post ending with thoughts?",
+  "text": "I built a small open-source tool that turns any RSS feed into a weekly email digest. Self-hosted, one binary, no tracking. Code on GitHub. Thoughts?",
+  "links": [
+   {
+    "href": "https://github.com/example/rss-digest",
+    "text": "github.com/example/rss-digest"
+   }
+  ],
+  "expect": "release",
+  "expect_no_fold": true
+ }
+]

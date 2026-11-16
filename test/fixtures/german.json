@@ -1,1 +1,244 @@
-[]
+[
+ {
+  "note": "de: Paper angenommen",
+  "text": "Ich freue mich sehr, dass unser Paper „Plattformarbeit und Mitbestimmung“ in der Zeitschrift für Arbeitsmarktforschung angenommen wurde. Wir werten Befragungsdaten von 3.400 Beschäftigten aus und zeigen, dass Betriebsräte die Kündigungsquote um ein Viertel senken. Der Preprint ist frei verfügbar.",
+  "links": [
+   {
+    "href": "https://osf.io/xyz12/",
+    "text": "osf.io/xyz12"
+   }
+  ],
+  "expect": "paper",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Studie veröffentlicht",
+  "text": "Neue Studie von unserem Institut: Wir haben 120 Kommunen untersucht und festgestellt, dass Tempo 30 die Zahl der Unfälle mit Verletzten um 18 % senkt. Die Ergebnisse und alle Daten sind öffentlich.",
+  "links": [
+   {
+    "href": "https://www.example-institut.de/studie-tempo30.pdf",
+    "text": "Studie Tempo 30"
+   }
+  ],
+  "expect": "paper",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Dissertation",
+  "text": "Meine Dissertation zur Wasserstoffspeicherung in Salzkavernen ist jetzt als Open-Access-Publikation erschienen. Danke an alle, die mich in den letzten fünf Jahren unterstützt haben.",
+  "links": [
+   {
+    "href": "https://doi.org/10.5445/IR/1000123456",
+    "text": "doi.org/10.5445/IR/1000123456"
+   }
+  ],
+  "expect": "paper",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Workshop mit Anmeldung",
+  "text": "Am Donnerstag, 12. März, um 14 Uhr veranstalten wir einen kostenlosen Online-Workshop zu Barrierefreiheit in Webformularen. Wir testen gemeinsam mit Screenreadern. Anmeldung über den Link, die Plätze sind begrenzt.",
+  "links": [
+   {
+    "href": "https://www.example.de/events/workshop-a11y",
+    "text": "Workshop Barrierefreiheit"
+   }
+  ],
+  "expect": "event",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Vortrag / Meetup",
+  "text": "Nächste Woche Dienstag um 18:30 Uhr gibt es beim Python-Stammtisch zwei Vorträge: Datenpipelines mit Polars und Testen ohne Tränen. Treffpunkt ist die Stadtbibliothek, Eintritt frei, bitte vorher anmelden.",
+  "links": [],
+  "expect": "event",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Call for Papers",
+  "text": "Call for Papers: Die Tagung „Digitale Verwaltung 2027“ sucht Beiträge zu KI in Behörden, Open Data und Bürgerbeteiligung. Einreichungsfrist ist der 15. Januar.",
+  "links": [
+   {
+    "href": "https://www.example-tagung.de/cfp",
+    "text": "example-tagung.de/cfp"
+   }
+  ],
+  "expect": "event",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Open-Source-Release",
+  "text": "Wir haben unser Tool zur Anonymisierung von Gerichtsurteilen als Open Source veröffentlicht. Es erkennt Namen, Adressen und Aktenzeichen mit einer Genauigkeit von 97 % und läuft komplett lokal. Code auf GitHub.",
+  "links": [
+   {
+    "href": "https://github.com/example/urteil-anon",
+    "text": "github.com/example/urteil-anon"
+   }
+  ],
+  "expect": "release",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: App-Update",
+  "text": "Ab sofort verfügbar: Version 3.0 unserer Fahrplan-App mit Offline-Karten, Echtzeit-Verspätungen und barrierefreier Navigation. Jetzt im App Store und bei Google Play aktualisieren.",
+  "links": [],
+  "expect": "release",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Stellenanzeige (m/w/d)",
+  "text": "Wir suchen eine Data Engineer (m/w/d) in Vollzeit für unser Team in Hamburg, remote möglich. Du baust unsere Datenplattform mit dbt und Snowflake aus. Gehalt 70–85 T€. Jetzt bewerben:",
+  "links": [
+   {
+    "href": "https://jobs.example.de/data-engineer",
+    "text": "jobs.example.de"
+   }
+  ],
+  "expect": "hiring",
+  "expect_tier": "worth",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Stellenangebot Promotion",
+  "text": "Offene Stelle: Wissenschaftliche:r Mitarbeiter:in (Promotion, E13, 65 %) im Bereich Verkehrsforschung, befristet auf drei Jahre. Bewerbungsschluss ist der 31. Januar.",
+  "links": [
+   {
+    "href": "https://www.example-uni.de/stellen/123",
+    "text": "example-uni.de/stellen"
+   }
+  ],
+  "expect": "hiring",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Trauer",
+  "text": "Mein Vater ist letzte Woche nach langer Krankheit verstorben. Er hat mir beigebracht, zuzuhören, bevor ich rede. Ich bin die nächsten Wochen nicht erreichbar. Danke für eure Nachrichten.",
+  "links": [],
+  "expect": "personal",
+  "expect_tier": "kind",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Jobverlust",
+  "text": "Nach sieben Jahren wurde mir letzte Woche betriebsbedingt gekündigt, zusammen mit dem halben Team. Ich bin auf der Suche nach einer neuen Stelle im Controlling, gerne in Köln oder remote. Über Hinweise freue ich mich sehr.",
+  "links": [],
+  "expect": "personal",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Burnout",
+  "text": "Vor einem Jahr hatte ich einen Burnout und war vier Monate krankgeschrieben. Ich schreibe das, weil ich mir gewünscht hätte, dass mir früher jemand sagt: Hol dir Hilfe.",
+  "links": [],
+  "expect": "personal",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Neuer Job",
+  "text": "Ich freue mich, euch mitteilen zu können, dass ich eine neue Position als Head of Marketing bei Contoso angetreten habe! 🚀 Danke an alle, die mich auf diesem Weg begleitet haben. Auf ein neues Kapitel!",
+  "links": [],
+  "expect": "job",
+  "expect_tier": "skip",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Erster Arbeitstag",
+  "text": "Heute war mein erster Tag bei der Stadtwerke Nord GmbH. Neues Team, neue Aufgaben und ganz viel Vorfreude. 💪 #NeuerJob #Dankbar",
+  "links": [],
+  "expect": "job"
+ },
+ {
+  "note": "de: Auszeichnung / Humblebrag",
+  "text": "Ich bin unglaublich stolz und dankbar: Ich wurde als eine der Top 25 Frauen in der Tech-Branche ausgezeichnet! 🏆 Diese Ehre gehört meinem großartigen Team. #Stolz #Dankbar #Award",
+  "links": [],
+  "expect": "brag",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "de: Kommentier-Köder",
+  "text": "Kommentiert mit „JA“, wenn ihr meine kostenlose Checkliste für bessere Meetings haben wollt! 👇 Teilt den Beitrag gerne mit eurem Netzwerk. ♻️",
+  "links": [],
+  "expect_tier": "skip",
+  "expect_fold": true
+ },
+ {
+  "note": "de: Seht ihr das auch so?",
+  "text": "Homeoffice ist tot. Wer jetzt nicht zurück ins Büro kommt, verpasst seine Karriere. Seht ihr das auch so? Stimmt ihr zu?",
+  "links": [],
+  "expect_not": [
+   "insight",
+   "paper",
+   "event",
+   "release"
+  ]
+ },
+ {
+  "note": "de: Verkaufspitch",
+  "text": "Die meisten Selbstständigen verschenken Umsatz. In meinem 6-Wochen-Coaching zeige ich dir, wie du deine Preise verdoppelst. Nur noch 3 Plätze frei! Schreib mir eine DM oder buch dir ein kostenloses Erstgespräch über den Link in meinem Profil.",
+  "links": [],
+  "expect": "sales",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "de: Rabattcode",
+  "text": "Nur bis Sonntag: 30 % Rabatt auf meinen Onlinekurs zum Thema Personal Branding mit dem Code BRAND30. Link in den Kommentaren!",
+  "links": [],
+  "expect": "sales",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "de: KI-Hype (two bait phrases: Skip, but not certain enough to fold)",
+  "text": "KI verändert ALLES. 🤯 Wer jetzt nicht auf den Zug aufspringt, wird abgehängt. Hier sind 7 KI-Tools, die du kennen musst. Folge mir für mehr Tipps! ♻️",
+  "links": [],
+  "expect_tier": "skip"
+ },
+ {
+  "note": "de: Anzeige gesponsert",
+  "text": "Mit unserer Buchhaltungssoftware sparst du jeden Monat 10 Stunden. Jetzt 30 Tage kostenlos testen.",
+  "links": [],
+  "promoted": true,
+  "expect": "ad",
+  "expect_fold": true
+ },
+ {
+  "note": "de: Lebensweisheit",
+  "text": "Mein Sohn hat mir gestern die wichtigste Lektion über Führung beigebracht. Er wollte ein Eis. Ich sagte nein. Er fragte nochmal, anders. Beim vierten Mal sagte ich ja. Was ich daraus gelernt habe: Hartnäckigkeit schlägt Talent.",
+  "links": [],
+  "expect": "lesson",
+  "expect_tier": "skip"
+ },
+ {
+  "note": "de: Alltag, ganz normal",
+  "text": "Heute Morgen im Zug neben einer Gruppe Schulkinder gesessen, die sich über Dinosaurier gestritten haben. Der Brachiosaurus hat gewonnen. Schöner Start in den Tag.",
+  "links": [],
+  "expect": "plain",
+  "expect_no_fold": true
+ },
+ {
+  "note": "de: Webinar rückblickend ist kein Event",
+  "text": "Was für ein tolles Webinar gestern! Über 300 Teilnehmende und spannende Diskussionen über KI im Mittelstand. Danke an alle Speaker. Die Aufzeichnung gibt es auf Anfrage.",
+  "links": [],
+  "expect_not": [
+   "event"
+  ]
+ },
+ {
+  "note": "de: Konferenzvortrag Aufzeichnung",
+  "text": "Die Aufzeichnung meines Vortrags auf der Konferenz ist online: Wie wir die Ladezeit unserer Website von 4,2 auf 1,1 Sekunden gesenkt haben. Folien und Code sind unter dem Video verlinkt.",
+  "links": [
+   {
+    "href": "https://www.youtube.com/watch?v=xyz",
+    "text": "Ladezeit von 4,2 auf 1,1 Sekunden"
+   }
+  ],
+  "expect_not": [
+   "brag",
+   "bait",
+   "sales"
+  ],
+  "expect_no_fold": true
+ }
+]

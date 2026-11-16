@@ -104,6 +104,9 @@ test("fold policy: never a worth link, never personal, ads always", () => {
   assert.equal(U.autoFold(v({ category: "ad" }), "skip", { collapse: "never" }), false);
   assert.equal(U.autoFold(v({ category: "brag", signal: 30 }), "skip", {}), false); // other skips stay open
   assert.equal(U.autoFold(v({ category: "brag", signal: 10 }), "skip", {}), true);
+  assert.equal(U.autoFold(v({ category: "hype", signal: 22, scores: { bait: 9 } }), "skip", {}), true); // stacked bait phrases
+  assert.equal(U.autoFold(v({ category: "hype", signal: 22, scores: { bait: 6 } }), "skip", {}), false);
+  assert.equal(U.autoFold(v({ category: "hiring", signal: 30, scores: { bait: 9 }, worth: { href: "https://jobs.example" } }), "skip", {}), false);
 });
 
 test("content scripts render only with textContent (no innerHTML, insertAdjacentHTML, eval)", () => {
