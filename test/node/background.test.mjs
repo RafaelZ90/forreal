@@ -167,3 +167,29 @@ test("manifest: no offscreen, minimal permissions", async () => {
   assert.match(m.version, /^\d+\.\d+\.\d+$/);
   for (const h of m.optional_host_permissions) assert.match(h, /^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)\//);
 });
+
+test("Claude: structured output request, truncated answers rejected", async () => {
+  const b = boot({ engine: "anthropic" }, async () => json({ stop_reason: "max_tokens", content: [{ type: "text", text: '{"category":"pa' }] }));
+  await b.local.set({ anthropicKey: "k" });
+  const r = await b.send({ type: "analyze", post: post() }, tab);
+  assert.match(r.error, /cut off/);
+  const body = b.calls.fetch[0].body;
+  assert.equal(body.output_config.format.type, "json_schema");
+  assert.ok(body.max_tokens >= 1024);
+  assert.equal(body.thinking, undefined, "no thinking setting: the model id is the reader's choice");
+});
+
+test("message payloads are checked: bad shapes ignored, sizes bounded", async () => {
+  const b = boot({ engine: "anthropic" }, async () => anthropicAnswer({ category: "plain", roast: "", gist: "", signal: 50, worth_title: "", worth_url: "" }));
+  await b.local.set({ anthropicKey: "k" });
+  assert.equal(await b.send({ type: "analyze", post: { text: 5, hash: "x" } }, tab), "ignored");
+  assert.equal(await b.send({ type: "analyze" }, tab), "ignored");
+  assert.equal(await b.send({ type: "stats", data: { category: "__proto__", words: 3 } }, tab), "ignored");
+  assert.deepEqual(await b.send({ type: "stats", data: { category: "paper", words: "lots", minutes: -4, worth: 1 } }, tab), { ok: true });
+  const st = b.local._data.stats;
+  assert.equal(st.words, 0); assert.equal(st.minutes, 0); assert.equal(st.worth, 1); assert.equal(st.cats.paper, 1);
+  await b.send({ type: "analyze", post: post({ text: "x".repeat(50000), links: Array.from({ length: 50 }, (_, i) => ({ href: "https://e.example/" + i })) }) }, tab);
+  const content = b.calls.fetch[0].body.messages[0].content;
+  assert.ok(content.length < 8000, "post text clipped for the prompt");
+  assert.equal((content.match(/https:\/\/e\.example/g) || []).length, 8, "at most eight links sent");
+});
